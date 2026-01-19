@@ -145,7 +145,7 @@ const Checkout = () => {
   // Calculate Melhor Envio freight when CEP changes
   useEffect(() => {
     const calculateMelhorEnvioFreight = async () => {
-      const cleanZip = address.zipCode.replace(/\D/g, "");
+      const cleanZip = (address.zipCode ?? '').replace(/\D/g, "");
       if (cleanZip.length !== 8 || items.length === 0) {
         setMelhorEnvioOptions([]);
         setSelectedMelhorEnvioOption(null);
@@ -304,7 +304,7 @@ const Checkout = () => {
             delivery_time: selectedMelhorEnvioOption.delivery_time,
             service_id: selectedMelhorEnvioOption.id,
           },
-          recipient_cpf: address.recipientCpf.replace(/\D/g, ''),
+          recipient_cpf: (address.recipientCpf ?? '').replace(/\D/g, ''),
           items: items.map(item => ({
             id: item.id,
             name: item.name,
@@ -595,7 +595,7 @@ const Checkout = () => {
                       />
                         <p className="text-xs text-muted-foreground mt-1">Necessário para envio via Correios/Transportadoras</p>
                         {/* Validation message when transportadora selected */}
-                        {shippingMethod === 'melhor_envio' && (address.recipientCpf.replace(/\D/g, '').length !== 11) && (
+                        {shippingMethod === 'melhor_envio' && ((address.recipientCpf ?? '').replace(/\D/g, '').length !== 11) && (
                           <p className="text-sm text-destructive mt-2">Preencha o CPF do destinatário para prosseguir com envio por transportadora.</p>
                         )}
                     </div>
@@ -723,7 +723,7 @@ const Checkout = () => {
                               <p className="text-sm text-destructive py-2">{freightError}</p>
                             ) : melhorEnvioOptions.length === 0 ? (
                               <p className="text-sm text-muted-foreground py-2">
-                                {address.zipCode.replace(/\D/g, "").length === 8
+                                {(address.zipCode ?? '').replace(/\D/g, "").length === 8
                                   ? "Nenhuma opção disponível para este CEP"
                                   : "Digite o CEP para calcular o frete"}
                               </p>
@@ -787,7 +787,7 @@ const Checkout = () => {
                       addresses.length === 0 ||
                       (shippingMethod === "motoboy" && !selectedZoneId) ||
                       (shippingMethod === "melhor_envio" && !selectedMelhorEnvioOption) ||
-                      (shippingMethod === "melhor_envio" && address.recipientCpf.replace(/\D/g, '').length !== 11)
+                      (shippingMethod === "melhor_envio" && (address.recipientCpf ?? '').replace(/\D/g, '').length !== 11)
                     }
                   >
                     Revisar Pedido
