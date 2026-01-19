@@ -98,9 +98,9 @@ const OrderDetail = () => {
             <ArrowLeft className="h-4 w-4 mr-1" />
             Voltar aos pedidos
           </Link>
-          <h2 className="text-2xl font-bold">Pedido {order.id}</h2>
+          <h2 className="text-2xl font-bold">Pedido {order.order_number || order.id}</h2>
           <p className="text-muted-foreground">
-            Realizado em {new Date(order.createdAt).toLocaleDateString('pt-BR', {
+            Realizado em {new Date(order.created_at || order.createdAt).toLocaleDateString('pt-BR', {
               day: 'numeric',
               month: 'long',
               year: 'numeric'
@@ -167,7 +167,7 @@ const OrderDetail = () => {
               <div key={index} className="flex items-center gap-4 p-4 bg-muted/30 rounded-lg">
                 <div className="w-20 h-20 bg-muted rounded-lg overflow-hidden">
                   <img
-                    src={item.image}
+                    src={item.product_image || item.image || '/placeholder.svg'}
                     alt={item.product_name || item.productName}
                     className="w-full h-full object-cover"
                   />
@@ -175,7 +175,7 @@ const OrderDetail = () => {
                 <div className="flex-1">
                   <p className="font-semibold">{item.product_name || item.productName}</p>
                   <p className="text-sm text-muted-foreground">
-                    Tamanho: {item.size} | Cor: {item.color}
+                    Tamanho: {item.size || 'N/A'} | Cor: {item.color || 'N/A'}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     Quantidade: {item.quantity}
@@ -183,10 +183,10 @@ const OrderDetail = () => {
                 </div>
                 <div className="text-right">
                   <p className="font-bold">
-                    R$ {((item.price || item.unit_price || 0) * item.quantity).toFixed(2).replace('.', ',')}
+                    R$ {((item.price || 0) * item.quantity).toFixed(2).replace('.', ',')}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    R$ {(item.price || item.unit_price || 0).toFixed(2).replace('.', ',')} cada
+                    R$ {(item.price || 0).toFixed(2).replace('.', ',')} cada
                   </p>
                 </div>
               </div>

@@ -84,7 +84,7 @@ const MyOrders = () => {
                   <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
                       <div>
-                        <p className="font-semibold">{order.id}</p>
+                        <p className="font-semibold">Pedido {order.order_number || order.id.slice(0, 8)}</p>
                         <p className="text-sm text-muted-foreground">
                           {new Date(order.created_at || order.createdAt).toLocaleDateString('pt-BR')}
                         </p>
@@ -115,19 +115,19 @@ const MyOrders = () => {
                         <div key={index} className="flex items-center gap-4">
                           <div className="w-16 h-16 bg-muted rounded-lg overflow-hidden">
                             <img
-                              src={item.image}
-                              alt={item.productName}
+                              src={item.product_image || item.image || '/placeholder.svg'}
+                              alt={item.product_name || item.productName}
                               className="w-full h-full object-cover"
                             />
                           </div>
                           <div className="flex-1">
                             <p className="font-medium">{item.product_name || item.productName}</p>
                             <p className="text-sm text-muted-foreground">
-                              Tam: {item.size} | Cor: {item.color} | Qtd: {item.quantity}
+                              Tam: {item.size || 'N/A'} | Cor: {item.color || 'N/A'} | Qtd: {item.quantity}
                             </p>
                           </div>
                           <p className="font-semibold">
-                            R$ {((item.price || item.unit_price || 0) * item.quantity).toFixed(2).replace('.', ',')}
+                            R$ {((item.price || 0) * item.quantity).toFixed(2).replace('.', ',')}
                           </p>
                         </div>
                       ))}
