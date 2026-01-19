@@ -135,6 +135,12 @@ serve(async (req) => {
       );
     }
 
+    // Usar CPF do notes se disponível (preenchido no checkout)
+    if (notes?.recipient_cpf) {
+      customerCpf = notes.recipient_cpf.replace(/\D/g, '');
+      console.log('Using CPF from order notes:', customerCpf);
+    }
+
     // Buscar configuração do Melhor Envio
     const { data: config, error: configError } = await supabaseClient
       .from('shipping_settings')

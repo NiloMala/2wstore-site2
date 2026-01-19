@@ -42,6 +42,7 @@ const Checkout = () => {
     neighborhood: "",
     city: "",
     state: "",
+    recipientCpf: "",
   });
 
   const [addresses, setAddresses] = useState<any[]>([]);
@@ -289,7 +290,38 @@ const Checkout = () => {
       // 2. Generate order number
       const orderNumber = `2WL-${Date.now().toString(36).toUpperCase()}`;
 
-      // 3. Create order in database
+      // 3. Build notes with shipping info for Melhor Envio
+      let orderNotes: string;
+      if (shippingMethod === 'motoboy') {
+        orderNotes = `Motoboy - ${selectedZone?.name}`;
+      } else if (selectedMelhorEnvioOption) {
+        // Save complete freight info for Melhor Envio shipment creation
+        const freightData = {
+          freight: {
+            carrier: selectedMelhorEnvioOption.company,
+            service: selectedMelhorEnvioOption.name,
+            price: selectedMelhorEnvioOption.final_price,
+            delivery_time: selectedMelhorEnvioOption.delivery_time,
+            service_id: selectedMelhorEnvioOption.id,
+          },
+          recipient_cpf: address.recipientCpf.replace(/\D/g, ''),
+          items: items.map(item => ({
+            id: item.id,
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+            weight: 0.3,  // Default 300g
+            height: 5,    // Default 5cm
+            width: 20,    // Default 20cm
+            length: 30,   // Default 30cm
+          })),
+        };
+        orderNotes = JSON.stringify(freightData);
+      } else {
+        orderNotes = '';
+      }
+
+      // 4. Create order in database
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert({
@@ -300,16 +332,14 @@ const Checkout = () => {
           shipping: finalShipping,
           total: total,
           shipping_address_id: selectedAddress?.id || null,
-          notes: shippingMethod === 'motoboy'
-            ? `Motoboy - ${selectedZone?.name}`
-            : `${selectedMelhorEnvioOption?.company} - ${selectedMelhorEnvioOption?.name}`,
+          notes: orderNotes,
         })
         .select()
         .single();
 
       if (orderError) throw orderError;
 
-      // 4. Create order items
+      // 5. Create order items
       const orderItems = items.map((item) => ({
         order_id: order.id,
         product_id: item.id,
@@ -326,7 +356,7 @@ const Checkout = () => {
 
       if (itemsError) throw itemsError;
 
-      // 5. Create Mercado Pago preference
+      // 6. Create Mercado Pago preference
       const mpItems = items.map((item) => ({
         title: `${item.name} - ${item.selectedSize} / ${item.selectedColor}`,
         quantity: item.quantity,
@@ -547,6 +577,23 @@ const Checkout = () => {
                           maxLength={2}
                         />
                       </div>
+                    </div>
+                    <div>
+                      <Label>CPF do Destinatário</Label>
+                      <Input
+                        value={address.recipientCpf}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, '');
+                          const formatted = value
+                            .replace(/(\d{3})(\d)/, '$1.$2')
+                            .replace(/(\d{3})(\d)/, '$1.$2')
+                            .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+                          setAddress({ ...address, recipientCpf: formatted });
+                        }}
+                        placeholder="000.000.000-00"
+                        maxLength={14}
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">Necessário para envio via Correios/Transportadoras</p>
                     </div>
                   </div>
 

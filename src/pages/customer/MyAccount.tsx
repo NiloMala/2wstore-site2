@@ -1,7 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, Outlet, useLocation } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent } from "@/components/ui/card";
 import { 
   User, 
@@ -20,7 +22,11 @@ const menuItems = [
 ];
 
 const MyAccount = () => {
-  const { user, isAuthenticated, logout, isLoading } = useAuth();
+  const { user, isAuthenticated, logout, isLoading, updateProfile } = useAuth();
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [nameValue, setNameValue] = useState(user?.name || "");
+  const [phoneValue, setPhoneValue] = useState(user?.phone || "");
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -122,7 +128,39 @@ const MyAccount = () => {
                       </div>
                     </div>
                     <div className="pt-4">
-                      <Button variant="outline">Editar dados</Button>
+                      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+                        <DialogTrigger asChild>
+                          <Button variant="outline">Editar dados</Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Editar meus dados</DialogTitle>
+                          </DialogHeader>
+                          <div className="grid gap-3 py-4">
+                            <div>
+                              <label className="text-sm text-muted-foreground">Nome</label>
+                              <Input value={nameValue} onChange={(e) => setNameValue(e.target.value)} />
+                            </div>
+                            <div>
+                              <label className="text-sm text-muted-foreground">Telefone</label>
+                              <Input value={phoneValue} onChange={(e) => setPhoneValue(e.target.value)} />
+                            </div>
+                          </div>
+                          <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsEditOpen(false)}>Cancelar</Button>
+                            <Button
+                              onClick={async () => {
+                                setIsSavingProfile(true);
+                                const res = await updateProfile({ name: nameValue, phone: phoneValue });
+                                setIsSavingProfile(false);
+                                if (res.success) setIsEditOpen(false);
+                                else alert(res.error || 'Erro ao salvar');
+                              }}
+                              disabled={isSavingProfile}
+                            >Salvar</Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   </div>
                 </CardContent>

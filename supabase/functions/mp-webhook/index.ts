@@ -124,14 +124,25 @@ serve(async (req) => {
       newStatus = 'cancelled';
     }
 
-    await supabaseClient
+    console.log('Updating order status:', orderId, 'to payment_status:', newPaymentStatus, 'status:', newStatus);
+
+    const { data: updatedOrder, error: orderUpdateError } = await supabaseClient
       .from('orders')
       .update({
         payment_status: newPaymentStatus,
         status: newStatus,
         updated_at: new Date().toISOString()
       })
-      .eq('id', orderId);
+      .eq('id', orderId)
+      .select('id, status, payment_status')
+      .single();
+
+    if (orderUpdateError) {
+      console.error('Error updating order status:', orderUpdateError);
+      console.error('Order ID attempted:', orderId);
+    } else {
+      console.log('Order updated successfully:', updatedOrder);
+    }
 
     await supabaseClient
       .from('payments')

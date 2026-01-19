@@ -4,10 +4,16 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Plus, Edit, Trash2, Home, Building } from "lucide-react";
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const MyAddresses = () => {
   const { isAuthenticated, user } = useAuth();
   const [addresses, setAddresses] = useState<any[]>([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<any | null>(null);
+  const [form, setForm] = useState({ label: '', street: '', number: '', complement: '', neighborhood: '', city: '', state: '', zip_code: '', is_default: false });
 
   useEffect(() => {
     let mounted = true;
@@ -41,10 +47,59 @@ const MyAddresses = () => {
           <MapPin className="h-5 w-5" />
           Meus Endereços
         </CardTitle>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Novo endereço
-        </Button>
+        <div>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => { setEditingAddress(null); setForm({ label: '', street: '', number: '', complement: '', neighborhood: '', city: '', state: '', zip_code: '', is_default: false }); }}>
+                <Plus className="h-4 w-4 mr-2" />
+                Novo endereço
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{editingAddress ? 'Editar Endereço' : 'Novo Endereço'}</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-3 py-4">
+                <Label>Rótulo</Label>
+                <Input value={form.label} onChange={(e) => setForm({ ...form, label: e.target.value })} />
+                <Label>Rua</Label>
+                <Input value={form.street} onChange={(e) => setForm({ ...form, street: e.target.value })} />
+                <Label>Número</Label>
+                <Input value={form.number} onChange={(e) => setForm({ ...form, number: e.target.value })} />
+                <Label>Complemento</Label>
+                <Input value={form.complement} onChange={(e) => setForm({ ...form, complement: e.target.value })} />
+                <Label>Bairro</Label>
+                <Input value={form.neighborhood} onChange={(e) => setForm({ ...form, neighborhood: e.target.value })} />
+                <Label>Cidade</Label>
+                <Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+                <Label>Estado</Label>
+                <Input value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} />
+                <Label>CEP</Label>
+                <Input value={form.zip_code} onChange={(e) => setForm({ ...form, zip_code: e.target.value })} />
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
+                <Button onClick={async () => {
+                  try {
+                    if (editingAddress) {
+                      await supabase.from('addresses').update(form).eq('id', editingAddress.id);
+                    } else {
+                      await supabase.from('addresses').insert({ ...form, user_id: user?.id });
+                    }
+                    setIsDialogOpen(false);
+                    setEditingAddress(null);
+                    // reload
+                    const { data } = await supabase.from('addresses').select('*').eq('user_id', user?.id).order('created_at', { ascending: false });
+                    setAddresses(data || []);
+                  } catch (err) {
+                    console.error(err);
+                    alert('Erro ao salvar endereço');
+                  }
+                }}>Salvar</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -85,7 +140,21 @@ const MyAddresses = () => {
                 </div>
               </div>
               <div className="flex gap-2 mt-4 pt-4 border-t border-border">
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={() => {
+                  setEditingAddress(address);
+                  setForm({
+                    label: address.label || '',
+                    street: address.street || '',
+                    number: address.number || '',
+                    complement: address.complement || '',
+                    neighborhood: address.neighborhood || '',
+                    city: address.city || '',
+                    state: address.state || '',
+                    zip_code: address.zip_code || address.zipCode || '',
+                    is_default: !!address.is_default,
+                  });
+                  setIsDialogOpen(true);
+                }}>
                   <Edit className="h-4 w-4 mr-2" />
                   Editar
                 </Button>
