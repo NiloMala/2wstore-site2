@@ -142,6 +142,9 @@ const Checkout = () => {
   const finalShipping = isFreeDelivery ? 0 : shipping;
   const total = totalPrice + finalShipping;
 
+  const _recipientCpfDigits = (address.recipientCpf ?? '').replace(/\D/g, '');
+  const isValidCpf = _recipientCpfDigits.length === 11 && !/^0+$/.test(_recipientCpfDigits);
+
   // Calculate Melhor Envio freight when CEP changes
   useEffect(() => {
     const calculateMelhorEnvioFreight = async () => {
@@ -595,8 +598,8 @@ const Checkout = () => {
                       />
                         <p className="text-xs text-muted-foreground mt-1">Necessário para envio via Correios/Transportadoras</p>
                         {/* Validation message when transportadora selected */}
-                        {shippingMethod === 'melhor_envio' && ((address.recipientCpf ?? '').replace(/\D/g, '').length !== 11) && (
-                          <p className="text-sm text-destructive mt-2">Preencha o CPF do destinatário para prosseguir com envio por transportadora.</p>
+                        {shippingMethod === 'melhor_envio' && !isValidCpf && (
+                          <p className="text-sm text-destructive mt-2">Preencha um CPF válido do destinatário para prosseguir com envio por transportadora.</p>
                         )}
                     </div>
                   </div>
