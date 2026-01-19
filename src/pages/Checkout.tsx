@@ -593,7 +593,11 @@ const Checkout = () => {
                         placeholder="000.000.000-00"
                         maxLength={14}
                       />
-                      <p className="text-xs text-muted-foreground mt-1">Necessário para envio via Correios/Transportadoras</p>
+                        <p className="text-xs text-muted-foreground mt-1">Necessário para envio via Correios/Transportadoras</p>
+                        {/* Validation message when transportadora selected */}
+                        {shippingMethod === 'melhor_envio' && (address.recipientCpf.replace(/\D/g, '').length !== 11) && (
+                          <p className="text-sm text-destructive mt-2">Preencha o CPF do destinatário para prosseguir com envio por transportadora.</p>
+                        )}
                     </div>
                   </div>
 
@@ -782,7 +786,8 @@ const Checkout = () => {
                     disabled={
                       addresses.length === 0 ||
                       (shippingMethod === "motoboy" && !selectedZoneId) ||
-                      (shippingMethod === "melhor_envio" && !selectedMelhorEnvioOption)
+                      (shippingMethod === "melhor_envio" && !selectedMelhorEnvioOption) ||
+                      (shippingMethod === "melhor_envio" && address.recipientCpf.replace(/\D/g, '').length !== 11)
                     }
                   >
                     Revisar Pedido
