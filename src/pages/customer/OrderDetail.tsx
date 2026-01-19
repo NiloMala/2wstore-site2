@@ -237,6 +237,29 @@ const OrderDetail = () => {
               </Button>
             </div>
           )}
+          {/* Melhor Envio protocol */}
+          {(order.melhor_envio_protocol || order.melhorEnvioProtocol) && (
+            <div className="mt-4 p-4 bg-accent/60 rounded-lg">
+              <p className="text-sm text-muted-foreground mb-1">Protocolo Melhor Envio:</p>
+              <div className="flex items-center gap-2">
+                <p className="font-mono font-bold text-primary text-lg break-all">{order.melhor_envio_protocol || order.melhorEnvioProtocol}</p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(order.melhor_envio_protocol || order.melhorEnvioProtocol);
+                      alert('Protocolo copiado para a área de transferência');
+                    } catch (err) {
+                      console.error('Erro ao copiar protocolo', err);
+                    }
+                  }}
+                >
+                  Copiar
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
