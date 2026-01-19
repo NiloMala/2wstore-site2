@@ -522,7 +522,7 @@ const Checkout = () => {
                     <div className="col-span-2 sm:col-span-1">
                       <Label>CEP</Label>
                       <Input
-                        value={address.zipCode}
+                        value={address.zipCode ?? ''}
                         onChange={(e) => handleZipCodeChange(e.target.value)}
                         placeholder="00000-000"
                         maxLength={9}
@@ -533,7 +533,7 @@ const Checkout = () => {
                     <div>
                       <Label>Rua</Label>
                       <Input
-                        value={address.street}
+                        value={address.street ?? ''}
                         onChange={(e) => setAddress({ ...address, street: e.target.value })}
                       />
                     </div>
@@ -541,14 +541,14 @@ const Checkout = () => {
                       <div>
                         <Label>Número</Label>
                         <Input
-                          value={address.number}
+                          value={address.number ?? ''}
                           onChange={(e) => setAddress({ ...address, number: e.target.value })}
                         />
                       </div>
                       <div>
                         <Label>Complemento</Label>
                         <Input
-                          value={address.complement}
+                          value={address.complement ?? ''}
                           onChange={(e) => setAddress({ ...address, complement: e.target.value })}
                           placeholder="Apto, Bloco..."
                         />
@@ -557,7 +557,7 @@ const Checkout = () => {
                     <div>
                       <Label>Bairro</Label>
                       <Input
-                        value={address.neighborhood}
+                        value={address.neighborhood ?? ''}
                         onChange={(e) => setAddress({ ...address, neighborhood: e.target.value })}
                       />
                     </div>
@@ -565,14 +565,14 @@ const Checkout = () => {
                       <div>
                         <Label>Cidade</Label>
                         <Input
-                          value={address.city}
+                          value={address.city ?? ''}
                           onChange={(e) => setAddress({ ...address, city: e.target.value })}
                         />
                       </div>
                       <div>
                         <Label>Estado</Label>
                         <Input
-                          value={address.state}
+                          value={address.state ?? ''}
                           onChange={(e) => setAddress({ ...address, state: e.target.value })}
                           maxLength={2}
                         />
@@ -581,7 +581,7 @@ const Checkout = () => {
                     <div>
                       <Label>CPF do Destinatário</Label>
                       <Input
-                        value={address.recipientCpf}
+                        value={address.recipientCpf ?? ''}
                         onChange={(e) => {
                           const value = e.target.value.replace(/\D/g, '');
                           const formatted = value
