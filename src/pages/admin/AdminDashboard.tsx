@@ -93,14 +93,7 @@ const AdminDashboard = () => {
       // Load recent orders
       const { data: orders } = await supabase
         .from('orders')
-        .select(`
-          id,
-          total,
-          status,
-          created_at,
-          user:profiles(name, email),
-          items:order_items(id)
-        `)
+        .select('id,total,status,created_at,user_id')
         .order('created_at', { ascending: false })
         .limit(5);
 
@@ -120,8 +113,8 @@ const AdminDashboard = () => {
             total: Number(order.total),
             status: order.status,
             created_at: order.created_at,
-            user: order.user,
-            items_count: order.items?.length || 0,
+            user: undefined,
+            items_count: 0,
           }))
         );
       }
