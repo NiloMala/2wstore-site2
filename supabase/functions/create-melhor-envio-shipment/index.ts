@@ -44,23 +44,48 @@ serve(async (req) => {
 
     console.log('Order found:', order.order_number);
 
-    // Buscar perfil do usuário
-    const { data: profile, error: profileError } = await supabaseClient
-      .from('profiles')
-      .select('first_name, last_name, phone, cpf, address, number, complement, neighborhood, city, state, zip_code')
-      .eq('id', order.user_id)
+    // Buscar endereço de entrega
+    if (!order.shipping_address_id) {
+      throw new Error('Pedido não possui endereço de entrega');
+    }
+
+    const { data: shippingAddress, error: addressError } = await supabaseClient
+      .from('addresses')
+      .select('street, number, complement, neighborhood, city, state, zip_code')
+      .eq('id', order.shipping_address_id)
       .single();
 
-    if (profileError) {
-      console.error('Profile fetch error:', profileError);
-      throw new Error(`Erro ao buscar perfil: ${profileError.message}`);
+    if (addressError) {
+      console.error('Address fetch error:', addressError);
+      throw new Error(`Erro ao buscar endereço: ${addressError.message}`);
     }
 
-    if (!profile) {
-      throw new Error('Perfil do usuário não encontrado');
+    if (!shippingAddress) {
+      throw new Error('Endereço de entrega não encontrado');
     }
 
-    console.log('Profile found for user:', order.user_id);
+    console.log('Shipping address found:', shippingAddress.city, shippingAddress.state);
+
+    // Buscar dados do usuário via auth.users
+    let customerName = 'Cliente';
+    let customerPhone = '';
+    let customerEmail = 'cliente@email.com';
+    let customerCpf = '';
+
+    if (order.user_id) {
+      const { data: userData } = await supabaseClient.auth.admin.getUserById(order.user_id);
+      if (userData?.user) {
+        customerEmail = userData.user.email || 'cliente@email.com';
+        customerName = userData.user.user_metadata?.name ||
+                       userData.user.user_metadata?.full_name ||
+                       userData.user.email?.split('@')[0] ||
+                       'Cliente';
+        customerPhone = (userData.user.user_metadata?.phone || userData.user.phone || '').replace(/\D/g, '');
+        customerCpf = (userData.user.user_metadata?.cpf || '').replace(/\D/g, '');
+      }
+    }
+
+    console.log('Customer:', customerName, 'Email:', customerEmail);
 
     // Verificar se já tem envio criado no Melhor Envio
     if (order.melhor_envio_shipment_id) {
@@ -105,8 +130,8 @@ serve(async (req) => {
       throw new Error('Melhor Envio não configurado');
     }
 
-    // Preparar endereço do destinatário (profile já foi buscado acima)
-    const cleanZipCode = (profile.zip_code || '').replace(/\D/g, '');
+    // Preparar endereço do destinatário
+    const cleanZipCode = (shippingAddress.zip_code || '').replace(/\D/g, '');
     
     if (cleanZipCode.length !== 8) {
       throw new Error('CEP do destinatário inválido');
@@ -180,16 +205,16 @@ serve(async (req) => {
         postal_code: config.origin_postal_code.replace(/\D/g, '')
       },
       to: {
-        name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim(),
-        phone: (profile.phone || '').replace(/\D/g, ''),
-        email: order.shipping_email || 'cliente@email.com',
-        document: (profile.cpf || '').replace(/\D/g, ''),
-        address: profile.address || '',
-        complement: profile.complement || '',
-        number: profile.number || 'S/N',
-        district: profile.neighborhood || '',
-        city: profile.city || '',
-        state_abbr: profile.state || '',
+        name: customerName,
+        phone: customerPhone,
+        email: customerEmail,
+        document: customerCpf,
+        address: shippingAddress.street || '',
+        complement: shippingAddress.complement || '',
+        number: shippingAddress.number || 'S/N',
+        district: shippingAddress.neighborhood || '',
+        city: shippingAddress.city || '',
+        state_abbr: shippingAddress.state || '',
         postal_code: cleanZipCode
       },
       products: notes.items.map((item: any) => ({
