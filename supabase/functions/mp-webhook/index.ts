@@ -66,11 +66,48 @@ serve(async (req) => {
     }
 
     const payment = await mpResponse.json();
-    const orderId = payment.external_reference;
-    console.log('Payment status:', payment.status, 'Order ID:', orderId);
+    let orderId = payment.external_reference;
+    console.log('Payment status:', payment.status, 'External Reference:', orderId);
+    console.log('Payment data:', JSON.stringify(payment, null, 2));
+
+    // Se external_reference estiver vazio, tentar encontrar pelo payment record existente
+    if (!orderId) {
+      console.log('external_reference is empty, trying to find order by preference_id');
+
+      // Tentar encontrar o pedido pelo preference_id nos payments existentes
+      const preferenceId = payment.preference_id;
+      if (preferenceId) {
+        const { data: existingPayment } = await supabaseClient
+          .from('payments')
+          .select('order_id')
+          .eq('transaction_id', preferenceId)
+          .single();
+
+        if (existingPayment?.order_id) {
+          orderId = existingPayment.order_id;
+          console.log('Found order_id from existing payment:', orderId);
+        }
+      }
+    }
 
     if (!orderId) {
-      return new Response(JSON.stringify({ ok: true }), {
+      console.error('Could not determine order_id for payment:', paymentId);
+      // Salvar o pagamento mesmo sem order_id para debug
+      await supabaseClient
+        .from('payments')
+        .upsert({
+          order_id: null,
+          gateway: 'mercado_pago',
+          transaction_id: payment.id.toString(),
+          amount: payment.transaction_amount,
+          currency: payment.currency_id,
+          status: payment.status,
+          payment_data: payment,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'transaction_id'
+        });
+      return new Response(JSON.stringify({ ok: true, warning: 'No order_id found' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200
       });

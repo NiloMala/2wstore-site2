@@ -76,7 +76,7 @@ serve(async (req) => {
         pending: `${req.headers.get('origin')}/payment/pending`
       },
       notification_url: webhookUrl,
-      external_reference: external_reference,
+      external_reference: externalRef,
       statement_descriptor: '2WL Store',
       payment_methods: {
         excluded_payment_types: [],
