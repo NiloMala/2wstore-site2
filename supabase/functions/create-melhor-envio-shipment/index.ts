@@ -111,11 +111,28 @@ serve(async (req) => {
     }
 
     // Parse notes para pegar informações do frete
-    const notes = typeof order.notes === 'string' ? JSON.parse(order.notes) : order.notes;
-    const freight = notes?.freight;
+    let notes: any = null;
+    let freight: any = null;
 
+    try {
+      notes = typeof order.notes === 'string' ? JSON.parse(order.notes) : order.notes;
+      freight = notes?.freight;
+    } catch (parseError) {
+      // Se não conseguir fazer parse, provavelmente é um pedido Motoboy (notes é string simples)
+      console.log('Notes is not JSON, likely a Motoboy order:', order.notes);
+    }
+
+    // Se não tem informações de frete do Melhor Envio, é um pedido Motoboy
     if (!freight || !freight.carrier) {
-      throw new Error('Informações de frete não encontradas no pedido');
+      console.log('Order does not use Melhor Envio shipping, skipping shipment creation');
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          message: 'Pedido não utiliza Melhor Envio (provavelmente Motoboy)',
+          skipped: true
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      );
     }
 
     // Buscar configuração do Melhor Envio
