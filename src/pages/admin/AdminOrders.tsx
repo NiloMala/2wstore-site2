@@ -218,7 +218,7 @@ const AdminOrders = () => {
             </Select>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0 sm:p-6">
           {filteredOrders.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">
               {searchQuery || statusFilter !== "all"
@@ -226,44 +226,76 @@ const AdminOrders = () => {
                 : "Nenhum pedido encontrado."}
             </p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Pedido</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Itens</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* Mobile Card View */}
+              <div className="sm:hidden divide-y">
                 {filteredOrders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-medium">
-                      #{order.id.slice(0, 8)}...
-                    </TableCell>
-                    <TableCell>
-                      {order.user?.name || 'Cliente não identificado'}
-                    </TableCell>
-                    <TableCell>{formatDate(order.created_at)}</TableCell>
-                    <TableCell>{order.items?.length || 0} item(s)</TableCell>
-                    <TableCell>R$ {Number(order.total).toFixed(2)}</TableCell>
-                    <TableCell>
+                  <div key={order.id} className="p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">#{order.id.slice(0, 8)}...</p>
+                        <p className="text-sm text-muted-foreground">
+                          {order.user?.name || 'Cliente não identificado'}
+                        </p>
+                      </div>
                       <Badge className={getOrderStatusColor(order.status)}>
                         {getOrderStatusLabel(order.status)}
                       </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={() => openOrderDetails(order)}>
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">{formatDate(order.created_at)}</span>
+                      <span className="font-semibold">R$ {Number(order.total).toFixed(2)}</span>
+                    </div>
+                    <Button variant="outline" size="sm" className="w-full" onClick={() => openOrderDetails(order)}>
+                      <Eye className="h-4 w-4 mr-2" />
+                      Ver detalhes
+                    </Button>
+                  </div>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+
+              {/* Desktop Table View */}
+              <div className="hidden sm:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Pedido</TableHead>
+                      <TableHead>Cliente</TableHead>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Itens</TableHead>
+                      <TableHead>Total</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredOrders.map((order) => (
+                      <TableRow key={order.id}>
+                        <TableCell className="font-medium">
+                          #{order.id.slice(0, 8)}...
+                        </TableCell>
+                        <TableCell>
+                          {order.user?.name || 'Cliente não identificado'}
+                        </TableCell>
+                        <TableCell>{formatDate(order.created_at)}</TableCell>
+                        <TableCell>{order.items?.length || 0} item(s)</TableCell>
+                        <TableCell>R$ {Number(order.total).toFixed(2)}</TableCell>
+                        <TableCell>
+                          <Badge className={getOrderStatusColor(order.status)}>
+                            {getOrderStatusLabel(order.status)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="icon" onClick={() => openOrderDetails(order)}>
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
@@ -331,6 +363,33 @@ const AdminOrders = () => {
                   </Button>
                 </div>
               </div>
+
+              {/* Melhor Envio protocol (if present) */}
+              {(selectedOrder.melhor_envio_protocol || (selectedOrder as any).melhorEnvioProtocol) && (
+                <div className="mt-4">
+                  <Label className="text-muted-foreground">Protocolo Melhor Envio</Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="font-mono font-bold text-primary break-all">
+                      {selectedOrder.melhor_envio_protocol || (selectedOrder as any).melhorEnvioProtocol}
+                    </p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(selectedOrder.melhor_envio_protocol || (selectedOrder as any).melhorEnvioProtocol);
+                          toast({ title: 'Protocolo copiado' });
+                        } catch (err) {
+                          console.error('Erro ao copiar protocolo', err);
+                          toast({ title: 'Erro', description: 'Não foi possível copiar o protocolo.', variant: 'destructive' });
+                        }
+                      }}
+                    >
+                      Copiar
+                    </Button>
+                  </div>
+                </div>
+              )}
 
               {selectedOrder.shipping_address && (
                 <div>
