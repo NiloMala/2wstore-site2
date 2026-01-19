@@ -1,0 +1,17 @@
+Assunto: Confirme seu e-mail — 2WL STORE
+
+Olá,
+
+Obrigado por se cadastrar na 2WL STORE! Para ativar sua conta, acesse o link abaixo:
+
+{{ .ConfirmationURL }}
+
+Se o link não abrir, copie e cole-o no seu navegador.
+
+Este link expira em breve. Se você não solicitou este e-mail, ignore-o.
+
+Dúvidas? Contate-nos em contato.2wlstore@gmail.com
+
+—
+2WL STORE
+Rua: José Jeronimo Soares, 26 — Caraguatatuba, SP
