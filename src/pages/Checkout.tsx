@@ -10,11 +10,12 @@ import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { CreditCard, Truck, ShieldCheck, ArrowLeft, Bike, Loader2, Package } from "lucide-react";
+import { CreditCard, Truck, ShieldCheck, ArrowLeft, Bike, Loader2, Package, Ticket, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { deliveryService } from '@/services/delivery.service';
 import { shippingService, type FreightOption } from '@/services/shipping.service';
 import { paymentService } from '@/services/payment.service';
+import { couponsService, type Coupon } from '@/services/coupons.service';
 import type { DeliveryZone as ServiceDeliveryZone } from '@/services/delivery.service';
 
 const Checkout = () => {
@@ -37,6 +38,13 @@ const Checkout = () => {
   // Payment method and discount
   const [paymentMethod, setPaymentMethod] = useState<'mercadopago' | 'pix'>('mercadopago');
   const [isFirstOrder, setIsFirstOrder] = useState(false);
+
+  // Coupon state
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
   
   const [address, setAddress] = useState({
     zipCode: "",
@@ -147,8 +155,52 @@ const Checkout = () => {
   const total = totalPrice + finalShipping;
 
   const PIX_DISCOUNT_RATE = 0.05; // 5%
-  const pixDiscount = paymentMethod === 'pix' && isFirstOrder ? Number((total * PIX_DISCOUNT_RATE).toFixed(2)) : 0;
-  const adjustedTotal = Number((total - pixDiscount).toFixed(2));
+  // PIX discount is calculated on subtotal (products only), not including shipping
+  const pixDiscount = paymentMethod === 'pix' && isFirstOrder ? Number((totalPrice * PIX_DISCOUNT_RATE).toFixed(2)) : 0;
+  const totalDiscount = pixDiscount + couponDiscount;
+  const adjustedTotal = Number((total - totalDiscount).toFixed(2));
+
+  // Apply coupon function
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError("Digite um código de cupom");
+      return;
+    }
+
+    setCouponLoading(true);
+    setCouponError(null);
+
+    try {
+      const result = await couponsService.validateCoupon(couponCode.trim(), totalPrice);
+
+      if (!result.valid) {
+        setCouponError(result.error || "Cupom inválido");
+        setAppliedCoupon(null);
+        setCouponDiscount(0);
+      } else {
+        setAppliedCoupon(result.coupon);
+        setCouponDiscount(result.discountAmount);
+        setCouponError(null);
+        toast({
+          title: "Cupom aplicado!",
+          description: `Desconto de R$ ${result.discountAmount.toFixed(2)} aplicado.`,
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao validar cupom:", error);
+      setCouponError("Erro ao validar cupom");
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  // Remove coupon function
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponDiscount(0);
+    setCouponCode("");
+    setCouponError(null);
+  };
 
   const _recipientCpfDigits = (address.recipientCpf ?? '').replace(/\D/g, '');
   const isValidCpf = _recipientCpfDigits.length === 11 && !/^0+$/.test(_recipientCpfDigits);
@@ -366,7 +418,11 @@ const Checkout = () => {
         orderNotes = '';
       }
 
-      // 4. Create order in database
+      // 4. Create order in database - include coupon info in notes
+      const notesWithCoupon = appliedCoupon
+        ? (orderNotes ? `${orderNotes}\nCupom: ${appliedCoupon.code} (-R$ ${couponDiscount.toFixed(2)})` : `Cupom: ${appliedCoupon.code} (-R$ ${couponDiscount.toFixed(2)})`)
+        : orderNotes;
+
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert({
@@ -375,15 +431,20 @@ const Checkout = () => {
           status: 'pending',
           subtotal: totalPrice,
           shipping: finalShipping,
-          discount: pixDiscount || 0,
+          discount: totalDiscount || 0,
           total: adjustedTotal,
           shipping_address_id: selectedAddress?.id || null,
-          notes: orderNotes,
+          notes: notesWithCoupon,
         })
         .select()
         .single();
 
       if (orderError) throw orderError;
+
+      // 4.1. Increment coupon usage if a coupon was applied
+      if (appliedCoupon) {
+        await couponsService.incrementUsage(appliedCoupon.id);
+      }
 
       // 5. Create order items
       const orderItems = items.map((item) => ({
@@ -915,7 +976,73 @@ const Checkout = () => {
                     </div>
                   </div>
 
-                  {/* Mercado Pago info */}
+                  <Separator />
+
+                  {/* Coupon Input */}
+                  <div>
+                    <h3 className="font-semibold mb-3 flex items-center gap-2">
+                      <Ticket className="h-4 w-4" />
+                      Cupom de Desconto
+                    </h3>
+                    {appliedCoupon ? (
+                      <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div>
+                          <p className="font-medium text-green-800">
+                            Cupom {appliedCoupon.code} aplicado!
+                          </p>
+                          <p className="text-sm text-green-600">
+                            Desconto de R$ {couponDiscount.toFixed(2)}
+                            {appliedCoupon.discount_type === 'percentage' && ` (${appliedCoupon.discount_value}%)`}
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleRemoveCoupon}
+                          className="text-green-700 hover:text-green-800 hover:bg-green-100"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="Digite o código do cupom"
+                            value={couponCode}
+                            onChange={(e) => {
+                              setCouponCode(e.target.value.toUpperCase());
+                              setCouponError(null);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleApplyCoupon();
+                              }
+                            }}
+                            className="flex-1"
+                          />
+                          <Button
+                            variant="outline"
+                            onClick={handleApplyCoupon}
+                            disabled={couponLoading || !couponCode.trim()}
+                          >
+                            {couponLoading ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              "Aplicar"
+                            )}
+                          </Button>
+                        </div>
+                        {couponError && (
+                          <p className="text-sm text-destructive">{couponError}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <Separator />
+
                   {/* Payment method selection */}
                   <div className="mb-4">
                     <Label className="mb-2">Forma de Pagamento</Label>
@@ -1025,6 +1152,16 @@ const Checkout = () => {
                 </div>
 
                 <Separator />
+
+                {couponDiscount > 0 && (
+                  <div className="flex justify-between text-sm text-green-700">
+                    <span className="flex items-center gap-1">
+                      <Ticket className="h-3 w-3" />
+                      Cupom {appliedCoupon?.code}
+                    </span>
+                    <span>- R$ {couponDiscount.toFixed(2)}</span>
+                  </div>
+                )}
 
                 {pixDiscount > 0 && (
                   <div className="flex justify-between text-sm text-green-700">
