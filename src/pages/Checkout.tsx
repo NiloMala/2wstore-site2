@@ -520,7 +520,8 @@ const Checkout = () => {
       const checkoutUrl = preference.init_point || preference.sandbox_init_point;
 
       if (checkoutUrl) {
-        window.location.href = checkoutUrl;
+        // Abrir checkout do Mercado Pago em nova aba para manter o usuário no site
+        window.open(checkoutUrl, '_blank', 'noopener,noreferrer');
       } else {
         throw new Error('URL de checkout não disponível');
       }
