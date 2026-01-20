@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useBanners } from "@/context/BannerContext";
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import heroBanner from "@/assets/hero-banner.jpg";
 
 export const HeroSection = () => {
@@ -78,7 +79,17 @@ export const HeroSection = () => {
             </div>
             <div className="flex items-center gap-2">
               <span className="text-xl">💳</span>
-              5% OFF no Pix
+              <span className="flex items-center">
+                5% OFF no Pix
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="ml-1 text-primary cursor-help select-none">*</span>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Na primeira compra</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-xl">🔄</span>

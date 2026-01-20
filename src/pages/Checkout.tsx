@@ -33,6 +33,10 @@ const Checkout = () => {
   const [selectedMelhorEnvioOption, setSelectedMelhorEnvioOption] = useState<FreightOption | null>(null);
   const [loadingFreight, setLoadingFreight] = useState(false);
   const [freightError, setFreightError] = useState<string | null>(null);
+
+  // Payment method and discount
+  const [paymentMethod, setPaymentMethod] = useState<'mercadopago' | 'pix'>('mercadopago');
+  const [isFirstOrder, setIsFirstOrder] = useState(false);
   
   const [address, setAddress] = useState({
     zipCode: "",
@@ -142,11 +146,16 @@ const Checkout = () => {
   const finalShipping = isFreeDelivery ? 0 : shipping;
   const total = totalPrice + finalShipping;
 
+  const PIX_DISCOUNT_RATE = 0.05; // 5%
+  const pixDiscount = paymentMethod === 'pix' && isFirstOrder ? Number((total * PIX_DISCOUNT_RATE).toFixed(2)) : 0;
+  const adjustedTotal = Number((total - pixDiscount).toFixed(2));
+
   const _recipientCpfDigits = (address.recipientCpf ?? '').replace(/\D/g, '');
   const isValidCpf = _recipientCpfDigits.length === 11 && !/^0+$/.test(_recipientCpfDigits);
 
   // Calculate Melhor Envio freight when CEP changes
   useEffect(() => {
+    let mounted = true;
     const calculateMelhorEnvioFreight = async () => {
       const cleanZip = (address.zipCode ?? '').replace(/\D/g, "");
       if (cleanZip.length !== 8 || items.length === 0) {
@@ -192,6 +201,7 @@ const Checkout = () => {
     };
 
     calculateMelhorEnvioFreight();
+    return () => { mounted = false; };
   }, [address.zipCode, items]);
 
   const handleZipCodeChange = async (zipCode: string) => {
@@ -254,6 +264,38 @@ const Checkout = () => {
       setLoadingAddresses(false);
     };
     load();
+    return () => { mounted = false; };
+  }, [isAuthenticated, user]);
+
+  // Check if this is the user's first order (no orders yet)
+  useEffect(() => {
+    if (!isAuthenticated || !user) {
+      setIsFirstOrder(false);
+      return;
+    }
+
+    let mounted = true;
+    (async () => {
+      try {
+        const { data, error, count } = await supabase
+          .from('orders')
+          .select('id', { count: 'exact', head: false })
+          .eq('user_id', user.id);
+
+        if (!mounted) return;
+        if (error) {
+          console.error('Erro ao verificar pedidos anteriores:', error);
+          setIsFirstOrder(false);
+        } else {
+          const ordersCount = Array.isArray(data) ? data.length : (count || 0);
+          setIsFirstOrder(ordersCount === 0);
+        }
+      } catch (err) {
+        console.error(err);
+        if (mounted) setIsFirstOrder(false);
+      }
+    })();
+
     return () => { mounted = false; };
   }, [isAuthenticated, user]);
 
@@ -333,7 +375,8 @@ const Checkout = () => {
           status: 'pending',
           subtotal: totalPrice,
           shipping: finalShipping,
-          total: total,
+          discount: pixDiscount || 0,
+          total: adjustedTotal,
           shipping_address_id: selectedAddress?.id || null,
           notes: orderNotes,
         })
@@ -381,7 +424,7 @@ const Checkout = () => {
 
       const preference = await paymentService.createPreference({
         orderId: order.id,
-        amount: total,
+        amount: adjustedTotal,
         items: mpItems,
         externalReference: order.id,
         backUrls: {
@@ -873,6 +916,21 @@ const Checkout = () => {
                   </div>
 
                   {/* Mercado Pago info */}
+                  {/* Payment method selection */}
+                  <div className="mb-4">
+                    <Label className="mb-2">Forma de Pagamento</Label>
+                    <div className="flex flex-col gap-2">
+                      <label className={`p-3 border rounded-lg cursor-pointer ${paymentMethod === 'mercadopago' ? 'bg-primary/5 border-primary/30' : ''}`}>
+                        <input type="radio" name="paymentMethod" value="mercadopago" checked={paymentMethod === 'mercadopago'} onChange={() => setPaymentMethod('mercadopago')} className="mr-2" />
+                        Mercado Pago (Cartão, Boleto, PIX via Mercado Pago)
+                      </label>
+                      <label className={`p-3 border rounded-lg cursor-pointer ${paymentMethod === 'pix' ? 'bg-primary/5 border-primary/30' : ''}`}>
+                        <input type="radio" name="paymentMethod" value="pix" checked={paymentMethod === 'pix'} onChange={() => setPaymentMethod('pix')} className="mr-2" />
+                        PIX (5% OFF na primeira compra)
+                      </label>
+                    </div>
+                  </div>
+
                   <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
                       <CreditCard className="h-5 w-5 text-blue-600" />
@@ -898,7 +956,7 @@ const Checkout = () => {
                           Processando...
                         </>
                       ) : (
-                        `Pagar R$ ${total.toFixed(2)}`
+                          `Pagar R$ ${adjustedTotal.toFixed(2)}`
                       )}
                     </Button>
                   </div>
@@ -968,9 +1026,16 @@ const Checkout = () => {
 
                 <Separator />
 
+                {pixDiscount > 0 && (
+                  <div className="flex justify-between text-sm text-green-700">
+                    <span>Desconto PIX (5% primeira compra)</span>
+                    <span>- R$ {pixDiscount.toFixed(2)}</span>
+                  </div>
+                )}
+
                 <div className="flex justify-between text-lg font-bold">
                   <span>Total</span>
-                  <span>R$ {total.toFixed(2)}</span>
+                  <span>R$ {adjustedTotal.toFixed(2)}</span>
                 </div>
 
                 <div className="flex items-center gap-2 text-sm text-muted-foreground pt-2">
