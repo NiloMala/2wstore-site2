@@ -80,7 +80,7 @@ export const Footer = () => {
           </li>
           <li className="flex items-center gap-2">
             <Phone className="h-4 w-4 text-primary flex-shrink-0" />
-            <span className="text-muted-foreground text-sm">(12) 98149-3220</span>
+            <span className="text-muted-foreground text-sm">(12) 99655-3803</span>
           </li>
           <li className="flex items-start gap-2">
             <MapPin className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
@@ -189,7 +189,7 @@ export const Footer = () => {
                 </li>
                 <li className="flex items-center gap-3">
                   <Phone className="h-5 w-5 text-primary flex-shrink-0" />
-                  <span className="text-muted-foreground">(12) 98149-3220</span>
+                  <span className="text-muted-foreground">(12) 99655-3803</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <Mail className="h-5 w-5 text-primary flex-shrink-0" />
