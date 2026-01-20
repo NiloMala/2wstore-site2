@@ -464,7 +464,7 @@ const Checkout = () => {
       if (itemsError) throw itemsError;
 
       // 6. Create Mercado Pago preference
-      const mpItems = items.map((item) => ({
+      const mpItems: Array<{ title: string; quantity: number; unit_price: number; currency_id: string }> = items.map((item) => ({
         title: `${item.name} - ${item.selectedSize} / ${item.selectedColor}`,
         quantity: item.quantity,
         unit_price: item.price,
@@ -479,6 +479,26 @@ const Checkout = () => {
             : `Frete ${selectedMelhorEnvioOption?.company}`,
           quantity: 1,
           unit_price: finalShipping,
+          currency_id: 'BRL',
+        });
+      }
+
+      // Add coupon discount as negative item (Mercado Pago calculates total from items)
+      if (couponDiscount > 0 && appliedCoupon) {
+        mpItems.push({
+          title: `Desconto Cupom ${appliedCoupon.code}`,
+          quantity: 1,
+          unit_price: -couponDiscount,
+          currency_id: 'BRL',
+        });
+      }
+
+      // Add PIX discount as negative item
+      if (pixDiscount > 0) {
+        mpItems.push({
+          title: 'Desconto PIX (5% primeira compra)',
+          quantity: 1,
+          unit_price: -pixDiscount,
           currency_id: 'BRL',
         });
       }
