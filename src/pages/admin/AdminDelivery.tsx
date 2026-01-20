@@ -397,79 +397,125 @@ const AdminDelivery = () => {
             Gerencie as áreas de entrega, bairros e valores de frete
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Zona/Região</TableHead>
-                <TableHead>Bairros</TableHead>
-                <TableHead>Valor</TableHead>
-                <TableHead>Tempo Est.</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {zones.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center">
-                    Nenhuma zona de entrega cadastrada.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                zones.map((zone) => (
-                  <TableRow key={zone.id}>
-                    <TableCell className="font-medium">{zone.name}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {(zone.neighborhoods || []).slice(0, 3).map((n, i) => (
-                          <Badge key={i} variant="secondary" className="text-xs">
-                            {n}
-                          </Badge>
-                        ))}
-                        {(zone.neighborhoods || []).length > 3 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{(zone.neighborhoods || []).length - 3}
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>{formatCurrency(zone.price)}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        {zone.estimated_time}
-                      </div>
-                    </TableCell>
-                    <TableCell>
+        <CardContent className="p-0 sm:p-6">
+          {zones.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">
+              Nenhuma zona de entrega cadastrada.
+            </p>
+          ) : (
+            <>
+              {/* Mobile Card View */}
+              <div className="sm:hidden divide-y">
+                {zones.map((zone) => (
+                  <div key={zone.id} className="p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium">{zone.name}</p>
                       <Switch
                         checked={zone.is_active ?? false}
                         onCheckedChange={() => handleToggleZoneStatus(zone)}
                       />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openEditZoneDialog(zone)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openDeleteDialog(zone)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {(zone.neighborhoods || []).slice(0, 3).map((n, i) => (
+                        <Badge key={i} variant="secondary" className="text-xs">
+                          {n}
+                        </Badge>
+                      ))}
+                      {(zone.neighborhoods || []).length > 3 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{(zone.neighborhoods || []).length - 3}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-semibold">{formatCurrency(zone.price)}</span>
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        {zone.estimated_time}
                       </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" className="flex-1" onClick={() => openEditZoneDialog(zone)}>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Editar
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => openDeleteDialog(zone)} className="text-destructive">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop Table View */}
+              <div className="hidden sm:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Zona/Região</TableHead>
+                      <TableHead>Bairros</TableHead>
+                      <TableHead>Valor</TableHead>
+                      <TableHead>Tempo Est.</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {zones.map((zone) => (
+                      <TableRow key={zone.id}>
+                        <TableCell className="font-medium">{zone.name}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap gap-1">
+                            {(zone.neighborhoods || []).slice(0, 3).map((n, i) => (
+                              <Badge key={i} variant="secondary" className="text-xs">
+                                {n}
+                              </Badge>
+                            ))}
+                            {(zone.neighborhoods || []).length > 3 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{(zone.neighborhoods || []).length - 3}
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>{formatCurrency(zone.price)}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            {zone.estimated_time}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Switch
+                            checked={zone.is_active ?? false}
+                            onCheckedChange={() => handleToggleZoneStatus(zone)}
+                          />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => openEditZoneDialog(zone)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => openDeleteDialog(zone)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 

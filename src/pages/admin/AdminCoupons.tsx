@@ -355,38 +355,19 @@ const AdminCoupons = () => {
             />
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0 sm:p-6">
           {filteredCoupons.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               {searchQuery ? "Nenhum cupom encontrado." : "Nenhum cupom cadastrado."}
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Código</TableHead>
-                  <TableHead>Desconto</TableHead>
-                  <TableHead>Uso</TableHead>
-                  <TableHead>Expira em</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* Mobile Card View */}
+              <div className="sm:hidden divide-y">
                 {filteredCoupons.map((coupon) => (
-                  <TableRow key={coupon.id}>
-                    <TableCell className="font-mono font-bold">{coupon.code}</TableCell>
-                    <TableCell>
-                      {coupon.discount_type === "percentage"
-                        ? `${coupon.discount_value}%`
-                        : `R$ ${Number(coupon.discount_value).toFixed(2)}`}
-                    </TableCell>
-                    <TableCell>
-                      {coupon.used_count || 0}
-                      {coupon.max_uses ? ` / ${coupon.max_uses}` : ""}
-                    </TableCell>
-                    <TableCell>{formatDate(coupon.expires_at)}</TableCell>
-                    <TableCell>
+                  <div key={coupon.id} className="p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className="font-mono font-bold text-lg">{coupon.code}</p>
                       <Badge
                         variant={coupon.is_active ? "default" : "secondary"}
                         className="cursor-pointer"
@@ -394,30 +375,92 @@ const AdminCoupons = () => {
                       >
                         {coupon.is_active ? "Ativo" : "Inativo"}
                       </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openEditDialog(coupon)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setDeleteId(coupon.id)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-semibold">
+                        {coupon.discount_type === "percentage"
+                          ? `${coupon.discount_value}% de desconto`
+                          : `R$ ${Number(coupon.discount_value).toFixed(2)} de desconto`}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                      <span>Uso: {coupon.used_count || 0}{coupon.max_uses ? ` / ${coupon.max_uses}` : ""}</span>
+                      <span>Expira: {formatDate(coupon.expires_at)}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" className="flex-1" onClick={() => openEditDialog(coupon)}>
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Editar
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => setDeleteId(coupon.id)} className="text-destructive">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+
+              {/* Desktop Table View */}
+              <div className="hidden sm:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Código</TableHead>
+                      <TableHead>Desconto</TableHead>
+                      <TableHead>Uso</TableHead>
+                      <TableHead>Expira em</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredCoupons.map((coupon) => (
+                      <TableRow key={coupon.id}>
+                        <TableCell className="font-mono font-bold">{coupon.code}</TableCell>
+                        <TableCell>
+                          {coupon.discount_type === "percentage"
+                            ? `${coupon.discount_value}%`
+                            : `R$ ${Number(coupon.discount_value).toFixed(2)}`}
+                        </TableCell>
+                        <TableCell>
+                          {coupon.used_count || 0}
+                          {coupon.max_uses ? ` / ${coupon.max_uses}` : ""}
+                        </TableCell>
+                        <TableCell>{formatDate(coupon.expires_at)}</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={coupon.is_active ? "default" : "secondary"}
+                            className="cursor-pointer"
+                            onClick={() => toggleActive(coupon)}
+                          >
+                            {coupon.is_active ? "Ativo" : "Inativo"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => openEditDialog(coupon)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setDeleteId(coupon.id)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

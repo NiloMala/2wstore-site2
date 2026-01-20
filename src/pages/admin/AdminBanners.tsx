@@ -500,27 +500,29 @@ const AdminBanners = () => {
             </CardContent>
           </Card>
         ) : (
-          banners.map((banner) => (
-            <Card key={banner.id} className={!banner.is_active ? "opacity-60" : ""}>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-4">
-                  <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab flex-shrink-0" />
-                  <div className="w-32 h-20 rounded overflow-hidden flex-shrink-0 bg-muted">
-                    <img
-                      src={banner.image_url || "/placeholder.svg"}
-                      alt={banner.title}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = "/placeholder.svg";
-                      }}
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold truncate">{banner.title}</h3>
-                    {banner.subtitle && (
-                      <p className="text-sm text-muted-foreground truncate">{banner.subtitle}</p>
-                    )}
-                    <div className="flex flex-wrap gap-2 mt-2">
+          <>
+            {/* Mobile Card View */}
+            <div className="sm:hidden space-y-4">
+              {banners.map((banner) => (
+                <Card key={banner.id} className={!banner.is_active ? "opacity-60" : ""}>
+                  <CardContent className="p-4 space-y-3">
+                    <div className="w-full h-32 rounded overflow-hidden bg-muted">
+                      <img
+                        src={banner.image_url || "/placeholder.svg"}
+                        alt={banner.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "/placeholder.svg";
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">{banner.title}</h3>
+                      {banner.subtitle && (
+                        <p className="text-sm text-muted-foreground">{banner.subtitle}</p>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
                       <Badge variant="outline">{getPositionLabel(banner.position)}</Badge>
                       <Badge variant={banner.is_active ? "default" : "secondary"}>
                         {banner.is_active ? (
@@ -530,39 +532,107 @@ const AdminBanners = () => {
                         )}
                       </Badge>
                     </div>
-                  </div>
-                  <div className="flex gap-2 flex-shrink-0">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleToggleActive(banner)}
-                    >
-                      {banner.is_active ? (
-                        <><EyeOff className="h-4 w-4 mr-1" /> Desativar</>
-                      ) : (
-                        <><Eye className="h-4 w-4 mr-1" /> Ativar</>
-                      )}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => openEditDialog(banner)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setDeleteId(banner.id)}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
+                    <div className="flex gap-2 pt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => handleToggleActive(banner)}
+                      >
+                        {banner.is_active ? (
+                          <><EyeOff className="h-4 w-4 mr-1" /> Desativar</>
+                        ) : (
+                          <><Eye className="h-4 w-4 mr-1" /> Ativar</>
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openEditDialog(banner)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setDeleteId(banner.id)}
+                        className="text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Desktop View */}
+            <div className="hidden sm:block space-y-4">
+              {banners.map((banner) => (
+                <Card key={banner.id} className={!banner.is_active ? "opacity-60" : ""}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-4">
+                      <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab flex-shrink-0" />
+                      <div className="w-32 h-20 rounded overflow-hidden flex-shrink-0 bg-muted">
+                        <img
+                          src={banner.image_url || "/placeholder.svg"}
+                          alt={banner.title}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = "/placeholder.svg";
+                          }}
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold truncate">{banner.title}</h3>
+                        {banner.subtitle && (
+                          <p className="text-sm text-muted-foreground truncate">{banner.subtitle}</p>
+                        )}
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          <Badge variant="outline">{getPositionLabel(banner.position)}</Badge>
+                          <Badge variant={banner.is_active ? "default" : "secondary"}>
+                            {banner.is_active ? (
+                              <><Eye className="h-3 w-3 mr-1" /> Ativo</>
+                            ) : (
+                              <><EyeOff className="h-3 w-3 mr-1" /> Inativo</>
+                            )}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 flex-shrink-0">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleToggleActive(banner)}
+                        >
+                          {banner.is_active ? (
+                            <><EyeOff className="h-4 w-4 mr-1" /> Desativar</>
+                          ) : (
+                            <><Eye className="h-4 w-4 mr-1" /> Ativar</>
+                          )}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openEditDialog(banner)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setDeleteId(banner.id)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </>
         )}
       </div>
 

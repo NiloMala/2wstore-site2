@@ -577,85 +577,142 @@ const AdminProducts = () => {
             />
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0 sm:p-6">
           {filteredProducts.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">
               {searchQuery ? "Nenhum produto encontrado." : "Nenhum produto cadastrado."}
             </p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Produto</TableHead>
-                  <TableHead>Categoria</TableHead>
-                  <TableHead>Preço</TableHead>
-                  <TableHead>Estoque</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* Mobile Card View */}
+              <div className="sm:hidden divide-y">
                 {filteredProducts.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-3">
-                        {product.images?.[0] ? (
-                          <img
-                            src={product.images[0]}
-                            alt={product.name}
-                            className="w-10 h-10 rounded object-cover"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
-                            <ImageIcon className="h-5 w-5 text-muted-foreground" />
-                          </div>
-                        )}
-                        <span className={!product.is_active ? 'text-muted-foreground' : ''}>
-                          {product.name}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>{getCategoryName(product.category_id)}</TableCell>
-                    <TableCell>
-                      R$ {Number(product.price).toFixed(2)}
-                      {product.original_price && (
-                        <span className="text-muted-foreground line-through ml-2 text-sm">
-                          R$ {Number(product.original_price).toFixed(2)}
-                        </span>
+                  <div key={product.id} className="p-4 space-y-3">
+                    <div className="flex items-center gap-3">
+                      {product.images?.[0] ? (
+                        <img
+                          src={product.images[0]}
+                          alt={product.name}
+                          className="w-14 h-14 rounded object-cover flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-14 h-14 rounded bg-muted flex items-center justify-center flex-shrink-0">
+                          <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                        </div>
                       )}
-                    </TableCell>
-                    <TableCell>
-                      <span className={product.stock && product.stock < 10 ? 'text-red-500 font-medium' : ''}>
-                        {product.stock || 0}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1 flex-wrap">
-                        {!product.is_active && <Badge variant="secondary">Inativo</Badge>}
-                        {product.is_new && <Badge variant="outline">Novo</Badge>}
-                        {product.is_best_seller && <Badge>Mais Vendido</Badge>}
-                        {product.is_on_sale && <Badge variant="destructive">Promoção</Badge>}
+                      <div className="flex-1 min-w-0">
+                        <p className={`font-medium truncate ${!product.is_active ? 'text-muted-foreground' : ''}`}>
+                          {product.name}
+                        </p>
+                        <p className="text-sm text-muted-foreground">{getCategoryName(product.category_id)}</p>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(product)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openDeleteDialog(product)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-semibold">R$ {Number(product.price).toFixed(2)}</p>
+                        <p className="text-sm text-muted-foreground">Estoque: {product.stock || 0}</p>
                       </div>
-                    </TableCell>
-                  </TableRow>
+                      <div className="flex gap-1 flex-wrap justify-end">
+                        {!product.is_active && <Badge variant="secondary" className="text-xs">Inativo</Badge>}
+                        {product.is_new && <Badge variant="outline" className="text-xs">Novo</Badge>}
+                        {product.is_on_sale && <Badge variant="destructive" className="text-xs">Promo</Badge>}
+                      </div>
+                    </div>
+                    <div className="flex gap-2 pt-2">
+                      <Button variant="outline" size="sm" className="flex-1" onClick={() => openEditDialog(product)}>
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Editar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openDeleteDialog(product)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+
+              {/* Desktop Table View */}
+              <div className="hidden sm:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Produto</TableHead>
+                      <TableHead>Categoria</TableHead>
+                      <TableHead>Preço</TableHead>
+                      <TableHead>Estoque</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredProducts.map((product) => (
+                      <TableRow key={product.id}>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-3">
+                            {product.images?.[0] ? (
+                              <img
+                                src={product.images[0]}
+                                alt={product.name}
+                                className="w-10 h-10 rounded object-cover"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
+                                <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                              </div>
+                            )}
+                            <span className={!product.is_active ? 'text-muted-foreground' : ''}>
+                              {product.name}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>{getCategoryName(product.category_id)}</TableCell>
+                        <TableCell>
+                          R$ {Number(product.price).toFixed(2)}
+                          {product.original_price && (
+                            <span className="text-muted-foreground line-through ml-2 text-sm">
+                              R$ {Number(product.original_price).toFixed(2)}
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <span className={product.stock && product.stock < 10 ? 'text-red-500 font-medium' : ''}>
+                            {product.stock || 0}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1 flex-wrap">
+                            {!product.is_active && <Badge variant="secondary">Inativo</Badge>}
+                            {product.is_new && <Badge variant="outline">Novo</Badge>}
+                            {product.is_best_seller && <Badge>Mais Vendido</Badge>}
+                            {product.is_on_sale && <Badge variant="destructive">Promoção</Badge>}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button variant="ghost" size="icon" onClick={() => openEditDialog(product)}>
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => openDeleteDialog(product)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
