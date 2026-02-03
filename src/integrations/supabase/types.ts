@@ -486,6 +486,7 @@ export type Database = {
           colors: string[] | null
           images: string[] | null
           stock: number | null
+          variants: Json | null
           is_new: boolean | null
           is_best_seller: boolean | null
           is_on_sale: boolean | null
@@ -505,6 +506,7 @@ export type Database = {
           colors?: string[] | null
           images?: string[] | null
           stock?: number | null
+          variants?: Json | null
           is_new?: boolean | null
           is_best_seller?: boolean | null
           is_on_sale?: boolean | null
@@ -524,6 +526,7 @@ export type Database = {
           colors?: string[] | null
           images?: string[] | null
           stock?: number | null
+          variants?: Json | null
           is_new?: boolean | null
           is_best_seller?: boolean | null
           is_on_sale?: boolean | null

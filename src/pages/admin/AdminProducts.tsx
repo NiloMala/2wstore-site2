@@ -38,10 +38,18 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Pencil, Trash2, Search, Loader2, Upload, X, Image as ImageIcon } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Loader2, Upload, X, Image as ImageIcon, Package } from "lucide-react";
 import { productsService, categoriesService, storageService } from "@/services";
 import type { Product, Category } from "@/services";
 import { useToast } from "@/hooks/use-toast";
+import type { Json } from "@/integrations/supabase/types";
+
+// Tipo para variante de produto (tamanho + cor + estoque)
+interface ProductVariant {
+  size: string;
+  color: string;
+  stock: number;
+}
 
 const generateSlug = (name: string): string => {
   return name
@@ -70,6 +78,10 @@ const AdminProducts = () => {
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
   const [newImagePreviews, setNewImagePreviews] = useState<string[]>([]);
+
+  // Variants state (estoque por tamanho e cor)
+  const [variants, setVariants] = useState<ProductVariant[]>([]);
+  const [useVariants, setUseVariants] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -133,6 +145,8 @@ const AdminProducts = () => {
     setExistingImages([]);
     setNewImageFiles([]);
     setNewImagePreviews([]);
+    setVariants([]);
+    setUseVariants(false);
   };
 
   const openCreateDialog = () => {
@@ -160,12 +174,88 @@ const AdminProducts = () => {
     setExistingImages(product.images || []);
     setNewImageFiles([]);
     setNewImagePreviews([]);
+    // Carregar variantes existentes
+    const existingVariants = (product as any).variants as ProductVariant[] | null;
+    if (existingVariants && existingVariants.length > 0) {
+      setVariants(existingVariants);
+      setUseVariants(true);
+    } else {
+      setVariants([]);
+      setUseVariants(false);
+    }
     setIsDialogOpen(true);
   };
 
   const openDeleteDialog = (product: Product) => {
     setProductToDelete(product);
     setIsDeleteDialogOpen(true);
+  };
+
+  // Gera as combinações de variantes baseado nos tamanhos e cores
+  const generateVariants = () => {
+    const sizesArray = formData.sizes ? formData.sizes.split(",").map(s => s.trim()).filter(Boolean) : [];
+    const colorsArray = formData.colors ? formData.colors.split(",").map(c => c.trim()).filter(Boolean) : [];
+
+    if (sizesArray.length === 0 && colorsArray.length === 0) {
+      toast({
+        title: "Atenção",
+        description: "Adicione pelo menos um tamanho ou cor para gerar variantes.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newVariants: ProductVariant[] = [];
+
+    // Se tem tamanhos e cores, gera combinações
+    if (sizesArray.length > 0 && colorsArray.length > 0) {
+      for (const size of sizesArray) {
+        for (const color of colorsArray) {
+          // Verifica se já existe essa variante
+          const existing = variants.find(v => v.size === size && v.color === color);
+          newVariants.push({
+            size,
+            color,
+            stock: existing?.stock ?? 0,
+          });
+        }
+      }
+    }
+    // Se só tem tamanhos
+    else if (sizesArray.length > 0) {
+      for (const size of sizesArray) {
+        const existing = variants.find(v => v.size === size && !v.color);
+        newVariants.push({
+          size,
+          color: "",
+          stock: existing?.stock ?? 0,
+        });
+      }
+    }
+    // Se só tem cores
+    else if (colorsArray.length > 0) {
+      for (const color of colorsArray) {
+        const existing = variants.find(v => v.color === color && !v.size);
+        newVariants.push({
+          size: "",
+          color,
+          stock: existing?.stock ?? 0,
+        });
+      }
+    }
+
+    setVariants(newVariants);
+    setUseVariants(true);
+  };
+
+  // Atualiza o estoque de uma variante específica
+  const updateVariantStock = (index: number, stock: number) => {
+    setVariants(prev => prev.map((v, i) => i === index ? { ...v, stock } : v));
+  };
+
+  // Calcula o estoque total das variantes
+  const getTotalVariantStock = () => {
+    return variants.reduce((total, v) => total + v.stock, 0);
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -260,6 +350,11 @@ const AdminProducts = () => {
 
       const allImages = [...existingImages, ...uploadedUrls];
 
+      // Calcula estoque total (soma das variantes ou estoque manual)
+      const totalStock = useVariants && variants.length > 0
+        ? variants.reduce((sum, v) => sum + v.stock, 0)
+        : parseInt(formData.stock) || 0;
+
       const productData = {
         name: formData.name.trim(),
         slug: editingProduct?.slug || generateSlug(formData.name),
@@ -270,7 +365,8 @@ const AdminProducts = () => {
         sizes: formData.sizes ? formData.sizes.split(",").map((s) => s.trim()).filter(Boolean) : [],
         colors: formData.colors ? formData.colors.split(",").map((c) => c.trim()).filter(Boolean) : [],
         images: allImages,
-        stock: parseInt(formData.stock) || 0,
+        stock: totalStock,
+        variants: useVariants && variants.length > 0 ? variants as unknown as Json : null,
         is_new: formData.isNew,
         is_best_seller: formData.isBestSeller,
         is_on_sale: formData.isOnSale,
@@ -523,6 +619,69 @@ const AdminProducts = () => {
                     placeholder="Preto, Branco"
                   />
                 </div>
+              </div>
+
+              {/* Seção de Variantes - Estoque por Tamanho/Cor */}
+              <div className="grid gap-3 p-4 border rounded-lg bg-muted/30">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Package className="h-4 w-4" />
+                    <Label className="font-medium">Estoque por Variante</Label>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={generateVariants}
+                    disabled={!formData.sizes && !formData.colors}
+                  >
+                    {variants.length > 0 ? "Atualizar Variantes" : "Gerar Variantes"}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Defina os tamanhos e cores acima, depois clique em "Gerar Variantes" para configurar o estoque de cada combinação.
+                </p>
+
+                {useVariants && variants.length > 0 && (
+                  <div className="space-y-2 mt-2">
+                    <div className="grid grid-cols-[1fr_1fr_100px] gap-2 text-xs font-medium text-muted-foreground px-1">
+                      <span>Tamanho</span>
+                      <span>Cor</span>
+                      <span>Qtd</span>
+                    </div>
+                    <div className="max-h-48 overflow-y-auto space-y-2">
+                      {variants.map((variant, index) => (
+                        <div key={index} className="grid grid-cols-[1fr_1fr_100px] gap-2 items-center">
+                          <span className="text-sm px-2 py-1 bg-background rounded border">
+                            {variant.size || "-"}
+                          </span>
+                          <span className="text-sm px-2 py-1 bg-background rounded border">
+                            {variant.color || "-"}
+                          </span>
+                          <Input
+                            type="number"
+                            min="0"
+                            value={variant.stock}
+                            onChange={(e) => updateVariantStock(index, parseInt(e.target.value) || 0)}
+                            className="h-8"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex justify-between items-center pt-2 border-t">
+                      <span className="text-sm font-medium">Estoque Total:</span>
+                      <Badge variant="secondary" className="text-sm">
+                        {getTotalVariantStock()} unidades
+                      </Badge>
+                    </div>
+                  </div>
+                )}
+
+                {!useVariants && (
+                  <p className="text-xs text-center text-muted-foreground py-4 border border-dashed rounded">
+                    Nenhuma variante configurada. O estoque geral será usado.
+                  </p>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex items-center gap-2">
