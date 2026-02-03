@@ -64,7 +64,7 @@ export const HeroSection = () => {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
-            <Button variant="hero-outline" size="xl" asChild>
+            <Button variant="hero" size="xl" asChild>
               <Link to="/catalogo?filter=new">
                 Ver lançamentos
               </Link>
