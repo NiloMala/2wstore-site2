@@ -33,6 +33,7 @@ const ProductDetail = () => {
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -41,6 +42,7 @@ const ProductDetail = () => {
   // Fetch product by ID
   useEffect(() => {
     let mounted = true;
+    setSelectedImageIndex(0); // Reset image selection when product changes
     (async () => {
       if (!id) return;
       setLoading(true);
@@ -129,30 +131,43 @@ const ProductDetail = () => {
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
           {/* Images */}
           <div className="space-y-4">
-            <div className="aspect-square rounded-xl overflow-hidden bg-muted">
-              <img
-                src={product.image ?? (product.images && product.images[0]) ?? getProductImage(product.category)}
-                alt={product.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="grid grid-cols-4 gap-2">
-              {(product.images && product.images.length > 0
-                ? product.images.slice(0, 4)
-                : [product.image ?? getProductImage(product.category), getProductImage(product.category), getProductImage(product.category), getProductImage(product.category)])
-                .map((src, idx) => (
-                <div
-                  key={idx}
-                  className="aspect-square rounded-lg overflow-hidden bg-muted cursor-pointer hover:ring-2 hover:ring-primary transition-all"
-                >
-                  <img
-                    src={src}
-                    alt={`${product.name} ${idx + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              ))}
-            </div>
+            {(() => {
+              const images = product.images && product.images.length > 0
+                ? product.images
+                : [product.image ?? getProductImage(product.category)];
+              const currentImage = images[selectedImageIndex] || images[0];
+
+              return (
+                <>
+                  <div className="aspect-square rounded-xl overflow-hidden bg-muted">
+                    <img
+                      src={currentImage}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    {images.slice(0, 4).map((src, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => setSelectedImageIndex(idx)}
+                        className={`aspect-square rounded-lg overflow-hidden bg-muted cursor-pointer transition-all ${
+                          selectedImageIndex === idx
+                            ? "ring-2 ring-primary"
+                            : "hover:ring-2 hover:ring-primary/50"
+                        }`}
+                      >
+                        <img
+                          src={src}
+                          alt={`${product.name} ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </>
+              );
+            })()}
           </div>
 
           {/* Info */}
