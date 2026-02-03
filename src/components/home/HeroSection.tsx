@@ -24,16 +24,16 @@ export const HeroSection = () => {
       </div>
 
       {/* CTAs e Trust badges - centralizados na base */}
-      <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-6">
+      <div className="absolute bottom-20 sm:bottom-24 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-3 sm:gap-6 w-full px-4 sm:px-0 sm:w-auto">
         {/* Botões */}
-        <div className="flex flex-col sm:flex-row gap-4 animate-slide-up" style={{ animationDelay: "0.2s" }}>
-          <Button variant="hero" size="xl" asChild>
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto animate-slide-up" style={{ animationDelay: "0.2s" }}>
+          <Button variant="hero" size="lg" className="sm:size-xl sm:h-14 sm:px-10 sm:text-lg" asChild>
             <Link to={linkUrl}>
               Comprar agora
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
             </Link>
           </Button>
-          <Button variant="hero" size="xl" asChild>
+          <Button variant="hero" size="lg" className="sm:size-xl sm:h-14 sm:px-10 sm:text-lg" asChild>
             <Link to="/catalogo?filter=new">
               Ver lançamentos
             </Link>
@@ -41,13 +41,13 @@ export const HeroSection = () => {
         </div>
 
         {/* Trust badges */}
-        <div className="flex flex-wrap justify-center gap-6 text-secondary-foreground/70 text-sm animate-fade-in" style={{ animationDelay: "0.3s" }}>
-          <div className="flex items-center gap-2">
-            <span className="text-xl">🚚</span>
-            Frete grátis +R$600,00
+        <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 sm:gap-6 text-secondary-foreground/70 text-xs sm:text-sm animate-fade-in" style={{ animationDelay: "0.3s" }}>
+          <div className="flex items-center gap-1 sm:gap-2">
+            <span className="text-sm sm:text-xl">🚚</span>
+            Frete grátis +R$600
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xl">💳</span>
+          <div className="flex items-center gap-1 sm:gap-2">
+            <span className="text-sm sm:text-xl">💳</span>
             <span className="flex items-center">
               5% OFF no Pix
               <TooltipProvider>
@@ -60,8 +60,8 @@ export const HeroSection = () => {
               </TooltipProvider>
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xl">🔄</span>
+          <div className="flex items-center gap-1 sm:gap-2">
+            <span className="text-sm sm:text-xl">🔄</span>
             Troca fácil
           </div>
         </div>
