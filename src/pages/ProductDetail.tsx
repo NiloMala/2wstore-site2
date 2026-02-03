@@ -139,7 +139,7 @@ const ProductDetail = () => {
 
               return (
                 <>
-                  <div className="aspect-[3/4] rounded-xl overflow-hidden bg-muted">
+                  <div className="aspect-[3/4] rounded-xl overflow-hidden bg-muted flex items-center justify-center">
                     <img
                       src={currentImage}
                       alt={product.name}
