@@ -115,10 +115,10 @@ const ProductDetail = () => {
     : 0;
 
   return (
-    <main className="min-h-screen pt-20">
-      <div className="container px-4 lg:px-8 py-8">
+    <main className="min-h-screen pt-16 lg:pt-20">
+      <div className="container px-3 lg:px-8 py-4 lg:py-8">
         {/* Breadcrumb */}
-        <div className="mb-6">
+        <div className="mb-3 lg:mb-6">
           <Link
             to="/catalogo"
             className="inline-flex items-center text-muted-foreground hover:text-primary transition-colors"
@@ -128,9 +128,9 @@ const ProductDetail = () => {
           </Link>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
+        <div className="grid lg:grid-cols-2 gap-4 lg:gap-12">
           {/* Images */}
-          <div className="space-y-4">
+          <div className="space-y-2 lg:space-y-4">
             {(() => {
               const images = product.images && product.images.length > 0
                 ? product.images
@@ -139,19 +139,20 @@ const ProductDetail = () => {
 
               return (
                 <>
-                  <div className="aspect-[3/4] rounded-xl overflow-hidden bg-muted flex items-center justify-center">
+                  <div className="aspect-[4/5] lg:aspect-[3/4] rounded-lg lg:rounded-xl overflow-hidden bg-muted flex items-center justify-center">
                     <img
                       src={currentImage}
                       alt={product.name}
                       className="w-full h-full object-contain"
                     />
                   </div>
-                  <div className="grid grid-cols-4 gap-2">
-                    {images.slice(0, 4).map((src, idx) => (
+                  {/* Thumbnails - horizontal scroll on mobile */}
+                  <div className="flex lg:grid lg:grid-cols-4 gap-1.5 lg:gap-2 overflow-x-auto pb-1 lg:pb-0 scrollbar-hide">
+                    {images.map((src, idx) => (
                       <div
                         key={idx}
                         onClick={() => setSelectedImageIndex(idx)}
-                        className={`aspect-square rounded-lg overflow-hidden bg-muted cursor-pointer transition-all ${
+                        className={`aspect-square rounded-md lg:rounded-lg overflow-hidden bg-muted cursor-pointer transition-all flex-shrink-0 w-14 h-14 lg:w-auto lg:h-auto ${
                           selectedImageIndex === idx
                             ? "ring-2 ring-primary"
                             : "hover:ring-2 hover:ring-primary/50"
@@ -171,7 +172,7 @@ const ProductDetail = () => {
           </div>
 
           {/* Info */}
-          <div className="space-y-6">
+          <div className="space-y-3 lg:space-y-6">
             {/* Badges */}
             <div className="flex gap-2">
               {product.isNew && (
@@ -193,43 +194,45 @@ const ProductDetail = () => {
 
             {/* Title */}
             <div>
-              <p className="text-sm text-muted-foreground uppercase tracking-wider mb-2">
+              <p className="text-xs lg:text-sm text-muted-foreground uppercase tracking-wider mb-1">
                 {product.category}
               </p>
-              <h1 className="text-3xl lg:text-4xl font-black uppercase tracking-tight">
+              <h1 className="text-xl lg:text-4xl font-black uppercase tracking-tight">
                 {product.name}
               </h1>
             </div>
 
             {/* Price */}
-            <div className="flex items-baseline gap-3">
-              <span className="text-3xl font-bold text-primary">
+            <div className="flex items-baseline gap-2 lg:gap-3">
+              <span className="text-xl lg:text-3xl font-bold text-primary">
                 R$ {product.price.toFixed(2).replace(".", ",")}
               </span>
               {product.originalPrice && (
-                <span className="text-xl text-muted-foreground line-through">
+                <span className="text-sm lg:text-xl text-muted-foreground line-through">
                   R$ {product.originalPrice.toFixed(2).replace(".", ",")}
                 </span>
               )}
             </div>
 
             {/* Description */}
-            <p className="text-muted-foreground">{product.description}</p>
+            {product.description && (
+              <p className="text-muted-foreground text-xs lg:text-base line-clamp-2 lg:line-clamp-none">{product.description}</p>
+            )}
 
             {/* Size Selection */}
             <div>
-              <div className="flex justify-between items-center mb-3">
-                <span className="font-semibold uppercase tracking-wider">Tamanho</span>
-                <button className="text-sm text-primary hover:underline">
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-semibold uppercase tracking-wider text-xs lg:text-base">Tamanho</span>
+                <button className="text-xs text-primary hover:underline">
                   Guia de medidas
                 </button>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5 lg:gap-2">
                 {product.sizes.map((size) => (
                   <button
                     key={size}
                     onClick={() => setSelectedSize(size)}
-                    className={`min-w-[48px] h-12 px-4 rounded-lg font-semibold transition-all ${
+                    className={`min-w-[40px] h-9 lg:min-w-[48px] lg:h-12 px-2.5 lg:px-4 rounded-md lg:rounded-lg font-semibold transition-all text-xs lg:text-base ${
                       selectedSize === size
                         ? "bg-primary text-primary-foreground"
                         : "bg-muted hover:bg-muted/80"
@@ -243,15 +246,15 @@ const ProductDetail = () => {
 
             {/* Color Selection */}
             <div>
-              <span className="font-semibold uppercase tracking-wider mb-3 block">
+              <span className="font-semibold uppercase tracking-wider mb-2 block text-xs lg:text-base">
                 Cor: {selectedColor}
               </span>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5 lg:gap-2">
                 {product.colors.map((color) => (
                   <button
                     key={color}
                     onClick={() => setSelectedColor(color)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    className={`px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-md lg:rounded-lg font-medium transition-all text-xs lg:text-base ${
                       selectedColor === color
                         ? "bg-primary text-primary-foreground"
                         : "bg-muted hover:bg-muted/80"
@@ -265,11 +268,11 @@ const ProductDetail = () => {
 
             {/* Quantity */}
             <div>
-              <span className="font-semibold uppercase tracking-wider mb-3 block">
+              <span className="font-semibold uppercase tracking-wider mb-2 block text-xs lg:text-base">
                 Quantidade
               </span>
               <div className="flex items-center gap-4">
-                <div className="flex items-center border border-border rounded-lg">
+                <div className="flex items-center border border-border rounded-md lg:rounded-lg">
                   <Button
                     variant="ghost"
                     size="icon"
@@ -290,45 +293,45 @@ const ProductDetail = () => {
             </div>
 
             {/* Add to Cart */}
-            <div className="flex gap-4">
+            <div className="flex gap-2 lg:gap-4">
               <Button
                 variant="buy"
-                size="xl"
-                className="flex-1"
+                size="lg"
+                className="flex-1 text-xs lg:text-base h-10 lg:h-14"
                 onClick={handleAddToCart}
                 disabled={!selectedSize || !selectedColor}
               >
-                <ShoppingBag className="h-5 w-5 mr-2" />
+                <ShoppingBag className="h-4 w-4 lg:h-5 lg:w-5 mr-1.5 lg:mr-2" />
                 Adicionar ao carrinho
               </Button>
-              <Button variant="outline" size="xl">
-                <Heart className="h-5 w-5" />
+              <Button variant="outline" size="lg" className="h-10 lg:h-14 w-10 lg:w-14 p-0">
+                <Heart className="h-4 w-4 lg:h-5 lg:w-5" />
               </Button>
             </div>
 
             {!selectedSize || !selectedColor ? (
-              <p className="text-sm text-muted-foreground text-center">
+              <p className="text-xs lg:text-sm text-muted-foreground">
                 Selecione tamanho e cor para continuar
               </p>
             ) : null}
 
             {/* Trust badges */}
-            <div className="grid grid-cols-3 gap-4 pt-6 border-t border-border">
+            <div className="grid grid-cols-3 gap-2 lg:gap-4 pt-4 lg:pt-6 border-t border-border">
               <div className="text-center">
-                <Truck className="h-6 w-6 mx-auto mb-2 text-primary" />
-                <p className="text-xs text-muted-foreground">
+                <Truck className="h-5 w-5 lg:h-6 lg:w-6 mx-auto mb-1 lg:mb-2 text-primary" />
+                <p className="text-[10px] lg:text-xs text-muted-foreground">
                   Frete grátis +R$200
                 </p>
               </div>
               <div className="text-center">
-                <RotateCcw className="h-6 w-6 mx-auto mb-2 text-primary" />
-                <p className="text-xs text-muted-foreground">
+                <RotateCcw className="h-5 w-5 lg:h-6 lg:w-6 mx-auto mb-1 lg:mb-2 text-primary" />
+                <p className="text-[10px] lg:text-xs text-muted-foreground">
                   Troca em 30 dias
                 </p>
               </div>
               <div className="text-center">
-                <Shield className="h-6 w-6 mx-auto mb-2 text-primary" />
-                <p className="text-xs text-muted-foreground">
+                <Shield className="h-5 w-5 lg:h-6 lg:w-6 mx-auto mb-1 lg:mb-2 text-primary" />
+                <p className="text-[10px] lg:text-xs text-muted-foreground">
                   Compra segura
                 </p>
               </div>
