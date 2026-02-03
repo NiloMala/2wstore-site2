@@ -93,9 +93,9 @@ export const ProductCard = ({ product }: ProductCardProps) => {
         </div>
 
         {/* Quick Add Button */}
-        <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-foreground/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <Button variant="hero-outline" className="w-full">
-            <ShoppingBag className="h-4 w-4 mr-2" />
+        <div className="absolute inset-x-0 bottom-0 p-2 lg:p-4 bg-gradient-to-t from-foreground/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <Button variant="hero-outline" className="w-full h-8 lg:h-10 text-xs lg:text-sm px-2 lg:px-4">
+            <ShoppingBag className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
             Ver produto
           </Button>
         </div>
