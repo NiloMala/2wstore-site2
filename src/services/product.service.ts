@@ -4,17 +4,21 @@ export const productService = {
   async getProducts() {
     const { data, error } = await supabase
       .from('products')
-      .select('*')
+      .select('*, category:categories(id, name, slug)')
+      .eq('is_active', true)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching products:', error);
+      throw error;
+    }
     return (data || []).map(normalizeProduct);
   },
 
   async getProductById(id: string) {
     const { data, error } = await supabase
       .from('products')
-      .select('*')
+      .select('*, category:categories(id, name, slug)')
       .eq('id', id)
       .single();
 
@@ -33,7 +37,12 @@ export const productService = {
   },
 
   async getFeatured(filter: 'new' | 'bestseller' | 'sale', limit = 4) {
-    let query = supabase.from('products').select('*').limit(limit);
+    let query = supabase
+      .from('products')
+      .select('*, category:categories(id, name, slug)')
+      .eq('is_active', true)
+      .limit(limit);
+
     switch (filter) {
       case 'new':
         query = query.eq('is_new', true);
@@ -47,7 +56,10 @@ export const productService = {
     }
 
     const { data, error } = await query;
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching featured products:', error);
+      throw error;
+    }
     return (data || []).map(normalizeProduct);
   }
 };
@@ -55,6 +67,10 @@ export const productService = {
 export default productService;
 
 function normalizeProduct(p: any) {
+  // Extract category name from joined object or fallback
+  const categoryName = p.category?.name ?? p.category_name ?? undefined;
+  const categoryId = p.category?.id ?? p.category_id ?? undefined;
+
   return {
     id: p.id,
     name: p.name,
@@ -64,7 +80,8 @@ function normalizeProduct(p: any) {
     originalPrice: Number(p.original_price ?? p.originalPrice ?? p.old_price ?? 0) || undefined,
     image: p.image ?? (p.images && p.images[0]) ?? undefined,
     images: p.images ?? [],
-    category: p.category ?? p.category_id ?? p.category_name ?? undefined,
+    category: categoryName,
+    categoryId: categoryId,
     sizes: p.sizes ?? p.available_sizes ?? [],
     colors: p.colors ?? p.available_colors ?? [],
     isNew: Boolean(p.is_new ?? p.isNew),

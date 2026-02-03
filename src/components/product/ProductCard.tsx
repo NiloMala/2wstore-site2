@@ -106,9 +106,11 @@ export const ProductCard = ({ product }: ProductCardProps) => {
         <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
           {product.name}
         </h3>
-        <p className="text-xs text-muted-foreground uppercase tracking-wider mt-1 mb-2">
-          {product.category}
-        </p>
+        {product.category && (
+          <p className="text-xs text-muted-foreground uppercase tracking-wider mt-1 mb-2">
+            {product.category}
+          </p>
+        )}
         <div className="flex items-center gap-2">
           <span className="text-lg font-bold text-primary">
             R$ {product.price.toFixed(2).replace(".", ",")}

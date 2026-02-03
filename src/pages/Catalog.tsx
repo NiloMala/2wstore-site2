@@ -47,14 +47,14 @@ const Catalog = () => {
       result = result.filter(
         (p) =>
           p.name.toLowerCase().includes(query) ||
-          p.category.toLowerCase().includes(query) ||
+          p.category?.toLowerCase().includes(query) ||
           p.description?.toLowerCase().includes(query)
       );
     }
 
     // Category filter
     if (categoryFilter) {
-      result = result.filter((p) => p.category === categoryFilter);
+      result = result.filter((p) => (p as any).categoryId === categoryFilter);
     }
 
     // Type filter
@@ -67,7 +67,7 @@ const Catalog = () => {
     }
 
     return result;
-  }, [categoryFilter, filterType, searchQuery]);
+  }, [products, categoryFilter, filterType, searchQuery]);
 
   const handleCategoryChange = (categoryId: string) => {
     const newParams = new URLSearchParams(searchParams);
