@@ -36,13 +36,6 @@ export const HeroSection = () => {
       {/* Content */}
       <div className="container relative z-10 px-4 lg:px-8 py-20">
         <div className="max-w-2xl">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/20 backdrop-blur-sm rounded-full text-primary-foreground mb-6 animate-fade-in">
-            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            <span className="text-sm font-semibold uppercase tracking-wider">
-              {subtitle}
-            </span>
-          </div>
 
           {/* Title */}
           <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black text-secondary-foreground leading-none mb-6 animate-slide-up">
