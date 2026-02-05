@@ -352,9 +352,11 @@ const Catalog = () => {
                 <Button onClick={clearFilters}>Ver todos os produtos</Button>
               </div>
             ) : (
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+              <div className="flex lg:grid lg:grid-cols-3 gap-3 lg:gap-6 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 scrollbar-hide -mx-4 px-4 lg:mx-0 lg:px-0">
                 {filteredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                  <div key={product.id} className="flex-shrink-0 w-[45vw] lg:w-auto">
+                    <ProductCard product={product} />
+                  </div>
                 ))}
               </div>
             )}
