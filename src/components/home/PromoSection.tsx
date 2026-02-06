@@ -85,30 +85,27 @@ export const PromoSection = () => {
             </Button>
           </div>
 
-          {/* Timer */}
-          <div className="flex gap-4">
-            {[
-              { value: banner?.ends_at ? timer.days : "03", label: "Dias" },
-              { value: banner?.ends_at ? timer.hours : "12", label: "Horas" },
-              { value: banner?.ends_at ? timer.minutes : "45", label: "Min" },
-              { value: banner?.ends_at ? timer.seconds : "22", label: "Seg" },
-            ].map((item, index) => (
-              <div
-                key={index}
-                className="bg-primary-foreground/10 backdrop-blur-sm rounded-xl p-4 text-center min-w-[70px]"
-              >
-                <div className="text-2xl lg:text-4xl font-black text-primary-foreground">
-                  {timer.ended ? "00" : item.value}
+          {/* Timer - só mostra se tiver data definida */}
+          {banner?.ends_at && (
+            <div className="flex gap-4">
+              {[
+                { value: timer.days, label: "Dias" },
+                { value: timer.hours, label: "Horas" },
+                { value: timer.minutes, label: "Min" },
+                { value: timer.seconds, label: "Seg" },
+              ].map((item, index) => (
+                <div
+                  key={index}
+                  className="bg-primary-foreground/10 backdrop-blur-sm rounded-xl p-4 text-center min-w-[70px]"
+                >
+                  <div className="text-2xl lg:text-4xl font-black text-primary-foreground">
+                    {item.value}
+                  </div>
+                  <div className="text-xs uppercase tracking-wider text-primary-foreground/70 mt-1">
+                    {item.label}
+                  </div>
                 </div>
-                <div className="text-xs uppercase tracking-wider text-primary-foreground/70 mt-1">
-                  {item.label}
-                </div>
-              </div>
-            ))}
-          </div>
-          {banner?.ends_at && timer.ended && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl">
-              <span className="text-lg font-bold text-white">Encerrado</span>
+              ))}
             </div>
           )}
         </div>
