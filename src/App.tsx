@@ -41,6 +41,7 @@ import AdminDelivery from "./pages/admin/AdminDelivery";
 import AdminCoupons from "./pages/admin/AdminCoupons";
 import AdminBanners from "./pages/admin/AdminBanners";
 import AdminCategories from "./pages/admin/AdminCategories";
+import AdminSettings from "./pages/admin/AdminSettings";
 
 const queryClient = new QueryClient();
 
@@ -65,6 +66,7 @@ const App = () => (
                 <Route path="entregas" element={<AdminDelivery />} />
                 <Route path="cupons" element={<AdminCoupons />} />
                 <Route path="banners" element={<AdminBanners />} />
+                <Route path="configuracoes" element={<AdminSettings />} />
               </Route>
 
               {/* Public Routes with Header/Footer */}

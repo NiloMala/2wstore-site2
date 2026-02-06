@@ -15,7 +15,8 @@ import {
   ChevronRight,
   Menu,
   X,
-  Grid3X3
+  Grid3X3,
+  Settings
 } from "lucide-react";
 
 const menuItems = [
@@ -26,6 +27,7 @@ const menuItems = [
   { icon: Bike, label: "Entregas", href: "/admin/entregas" },
   { icon: Ticket, label: "Cupons", href: "/admin/cupons" },
   { icon: Image, label: "Banners", href: "/admin/banners" },
+  { icon: Settings, label: "Promoção", href: "/admin/configuracoes" },
 ];
 
 const AdminLayout = () => {

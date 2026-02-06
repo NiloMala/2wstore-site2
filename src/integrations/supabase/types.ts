@@ -843,6 +843,27 @@ export type Database = {
           }
         ]
       }
+      site_settings: {
+        Row: {
+          key: string
+          value: string
+          description: string | null
+          updated_at: string
+        }
+        Insert: {
+          key: string
+          value: string
+          description?: string | null
+          updated_at?: string
+        }
+        Update: {
+          key?: string
+          value?: string
+          description?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

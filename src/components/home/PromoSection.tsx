@@ -3,15 +3,41 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useBanners } from "@/context/BannerContext";
 import { useEffect, useState } from "react";
+import { settingsService } from "@/services/settings.service";
+
+interface PromoDefaults {
+  subtitle: string;
+  title: string;
+  description: string;
+  link: string;
+  showWithoutBanner: boolean;
+}
 
 export const PromoSection = () => {
   const { getActiveBanner, loading } = useBanners();
   const banner = getActiveBanner("promo");
 
-  const title = banner?.title || "ATÉ 40% OFF EM PEÇAS SELECIONADAS";
-  const subtitle = banner?.subtitle || "🔥 Promoção Especial";
-  const description = banner?.description || "Aproveite descontos exclusivos na coleção de inverno. Por tempo limitado!";
-  const linkUrl = banner?.link_url || "/catalogo?filter=sale";
+  const [defaults, setDefaults] = useState<PromoDefaults>({
+    subtitle: "🔥 Promoção Especial",
+    title: "ATÉ 40% OFF EM PEÇAS SELECIONADAS",
+    description: "Aproveite descontos exclusivos na coleção de inverno. Por tempo limitado!",
+    link: "/catalogo?filter=sale",
+    showWithoutBanner: true,
+  });
+
+  useEffect(() => {
+    settingsService.getPromoDefaults().then(setDefaults).catch(console.error);
+  }, []);
+
+  // Se não deve mostrar sem banner e não tem banner, não renderiza
+  if (!banner && !defaults.showWithoutBanner) {
+    return null;
+  }
+
+  const title = banner?.title || defaults.title;
+  const subtitle = banner?.subtitle || defaults.subtitle;
+  const description = banner?.description || defaults.description;
+  const linkUrl = banner?.link_url || defaults.link;
 
   // Split title for better display
   const titleParts = title.split(" ");
