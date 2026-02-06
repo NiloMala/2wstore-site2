@@ -14,12 +14,14 @@ import {
   Bike,
   ChevronRight,
   Menu,
-  X
+  X,
+  Grid3X3
 } from "lucide-react";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/admin" },
   { icon: Package, label: "Produtos", href: "/admin/produtos" },
+  { icon: Grid3X3, label: "Categorias", href: "/admin/categorias" },
   { icon: ShoppingCart, label: "Pedidos", href: "/admin/pedidos" },
   { icon: Bike, label: "Entregas", href: "/admin/entregas" },
   { icon: Ticket, label: "Cupons", href: "/admin/cupons" },

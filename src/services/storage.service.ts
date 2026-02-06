@@ -1,6 +1,6 @@
 import { supabase } from '@/integrations/supabase';
 
-export type BucketName = 'product-images' | 'banners' | 'avatars';
+export type BucketName = 'product-images' | 'banners' | 'avatars' | 'categories';
 
 export const storageService = {
   /**
