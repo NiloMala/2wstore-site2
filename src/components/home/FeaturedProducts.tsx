@@ -19,7 +19,7 @@ export const FeaturedProducts = ({ title, filter, viewAllLink }: FeaturedProduct
     let mounted = true;
     (async () => {
       try {
-        const items = await productService.getFeatured(filter, 4);
+        const items = await productService.getFeatured(filter, 8);
         if (!mounted) return;
         setProducts(items as Product[]);
       } catch (e) {
@@ -51,10 +51,12 @@ export const FeaturedProducts = ({ title, filter, viewAllLink }: FeaturedProduct
           )}
         </div>
 
-        {/* Products Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+        {/* Products - horizontal scroll on mobile, grid on desktop */}
+        <div className="flex lg:grid lg:grid-cols-4 gap-3 lg:gap-6 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 scrollbar-hide -mx-4 px-4 lg:mx-0 lg:px-0">
           {filteredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <div key={product.id} className="flex-shrink-0 w-[42vw] lg:w-auto">
+              <ProductCard product={product} />
+            </div>
           ))}
         </div>
       </div>
