@@ -35,18 +35,18 @@ export const CategoriesSection = () => {
           </p>
         </div>
 
-        {/* Categories Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        {/* Categories - horizontal scroll on mobile */}
+        <div className="flex lg:grid lg:grid-cols-5 gap-3 lg:gap-4 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 scrollbar-hide -mx-4 px-4 lg:mx-0 lg:px-0">
           {categories.map((category) => (
             <Link
               key={category.id}
               to={`/catalogo?category=${category.id}`}
-              className="group relative bg-card rounded-xl p-6 lg:p-8 text-center shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300"
+              className="group relative bg-card rounded-xl p-4 lg:p-8 text-center shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 flex-shrink-0 w-28 lg:w-auto"
             >
-              <div className="text-4xl lg:text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">
+              <div className="text-3xl lg:text-5xl mb-2 lg:mb-4 group-hover:scale-110 transition-transform duration-300">
                 {category.icon}
               </div>
-              <h3 className="font-bold uppercase tracking-wider text-foreground group-hover:text-primary transition-colors">
+              <h3 className="font-bold uppercase tracking-wider text-foreground group-hover:text-primary transition-colors text-xs lg:text-base">
                 {category.name}
               </h3>
               <div className="absolute inset-0 rounded-xl border-2 border-transparent group-hover:border-primary transition-colors duration-300" />
