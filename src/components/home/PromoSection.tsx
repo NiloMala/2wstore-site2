@@ -48,9 +48,21 @@ export const PromoSection = () => {
     return () => clearInterval(interval);
   }, [banner?.ends_at]);
 
+  const backgroundImage = banner?.image_url;
+
   return (
-    <section className="py-16 lg:py-24 bg-hero-gradient overflow-hidden">
-      <div className="container px-4 lg:px-8">
+    <section
+      className="py-16 lg:py-24 overflow-hidden relative"
+      style={backgroundImage ? {
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      } : undefined}
+    >
+      {/* Overlay escuro se tiver imagem, senão usa gradiente */}
+      <div className={`absolute inset-0 ${backgroundImage ? 'bg-black/40' : 'bg-hero-gradient'}`} />
+
+      <div className="container px-4 lg:px-8 relative z-10">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-16">
           {/* Content */}
           <div className="flex-1 text-center lg:text-left">
