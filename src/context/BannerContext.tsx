@@ -22,10 +22,17 @@ export const BannerProvider = ({ children }: { children: ReactNode }) => {
   const fetchBanners = async () => {
     try {
       setLoading(true);
-      // Busca todos banners ativos de todas as posições
       const data = await bannersService.getAllAdmin();
-      // Filtra apenas os ativos
-      setBanners((data || []).filter((b: any) => b.is_active));
+      const now = new Date();
+      // Filtra apenas os ativos E dentro do período válido
+      setBanners((data || []).filter((b: any) => {
+        if (!b.is_active) return false;
+        // Verifica data de início
+        if (b.starts_at && new Date(b.starts_at) > now) return false;
+        // Verifica data de término
+        if (b.ends_at && new Date(b.ends_at) <= now) return false;
+        return true;
+      }));
     } catch (e) {
       console.error(e);
     } finally {
