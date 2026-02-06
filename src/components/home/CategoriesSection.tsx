@@ -44,7 +44,15 @@ export const CategoriesSection = () => {
               className="group relative bg-card rounded-xl p-4 lg:p-8 text-center shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 flex-shrink-0 w-28 lg:w-auto"
             >
               <div className="text-3xl lg:text-5xl mb-2 lg:mb-4 group-hover:scale-110 transition-transform duration-300">
-                {category.icon}
+                {category.image_url ? (
+                  <img
+                    src={category.image_url}
+                    alt={category.name}
+                    className="w-12 h-12 lg:w-16 lg:h-16 object-contain mx-auto"
+                  />
+                ) : (
+                  category.icon
+                )}
               </div>
               <h3 className="font-bold uppercase tracking-wider text-foreground group-hover:text-primary transition-colors text-xs lg:text-base">
                 {category.name}

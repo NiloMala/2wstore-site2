@@ -167,6 +167,7 @@ export type Database = {
           name: string
           slug: string
           icon: string | null
+          image_url: string | null
           description: string | null
           is_active: boolean | null
           display_order: number | null
@@ -178,6 +179,7 @@ export type Database = {
           name: string
           slug: string
           icon?: string | null
+          image_url?: string | null
           description?: string | null
           is_active?: boolean | null
           display_order?: number | null
@@ -189,6 +191,7 @@ export type Database = {
           name?: string
           slug?: string
           icon?: string | null
+          image_url?: string | null
           description?: string | null
           is_active?: boolean | null
           display_order?: number | null
