@@ -48,7 +48,7 @@ export const CategoriesSection = () => {
                   <img
                     src={category.image_url}
                     alt={category.name}
-                    className="w-12 h-12 lg:w-16 lg:h-16 object-contain mx-auto"
+                    className="w-16 h-16 lg:w-20 lg:h-20 object-contain mx-auto"
                   />
                 ) : (
                   category.icon
