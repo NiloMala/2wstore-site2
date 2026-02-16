@@ -178,6 +178,27 @@ export const ordersService = {
   },
 
   /**
+   * Delete order and its items (admin)
+   */
+  async delete(id: string) {
+    // Remove order items first to be safe
+    const { error: itemsError } = await supabase
+      .from('order_items')
+      .delete()
+      .eq('order_id', id);
+
+    if (itemsError) throw itemsError;
+
+    const { error } = await supabase
+      .from('orders')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return true;
+  },
+
+  /**
    * Get order statistics (admin)
    */
   async getStats() {
@@ -191,7 +212,7 @@ export const ordersService = {
       totalOrders: orders.length,
       pendingOrders: orders.filter(o => o.status === 'pending').length,
       totalRevenue: orders
-        .filter(o => o.status !== 'cancelled')
+        .filter(o => o.status === 'confirmed' || o.status === 'shipped' || o.status === 'delivered')
         .reduce((sum, o) => sum + Number(o.total), 0),
     };
 

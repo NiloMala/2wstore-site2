@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Search, Eye, Loader2 } from "lucide-react";
+import { Search, Eye, Loader2, Trash } from "lucide-react";
 import { ordersService } from "@/services";
 import type { OrderStatus } from "@/services";
 import { useToast } from "@/hooks/use-toast";
@@ -98,6 +98,9 @@ const AdminOrders = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [trackingCode, setTrackingCode] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<OrderWithDetails | null>(null);
 
   useEffect(() => {
     loadOrders();
@@ -166,6 +169,37 @@ const AdminOrders = () => {
       });
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleDeleteClick = (order: OrderWithDetails) => {
+    setOrderToDelete(order);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDeleteOrder = async () => {
+    if (!orderToDelete) return;
+    setIsDeleting(true);
+    try {
+      await ordersService.delete(orderToDelete.id);
+      setOrders(orders.filter(o => o.id !== orderToDelete.id));
+      if (selectedOrder?.id === orderToDelete.id) {
+        setIsDialogOpen(false);
+        setSelectedOrder(null);
+      }
+      toast({
+        title: 'Pedido excluído com sucesso!',
+        description: 'O pedido foi removido permanentemente.',
+        variant: 'success',
+        duration: 5000
+      });
+    } catch (error: any) {
+      console.error('Error deleting order:', error);
+      toast({ title: 'Erro', description: error.message || 'Não foi possível excluir o pedido.', variant: 'destructive' });
+    } finally {
+      setIsDeleting(false);
+      setDeleteConfirmOpen(false);
+      setOrderToDelete(null);
     }
   };
 
@@ -246,10 +280,16 @@ const AdminOrders = () => {
                       <span className="text-muted-foreground">{formatDate(order.created_at)}</span>
                       <span className="font-semibold">R$ {Number(order.total).toFixed(2)}</span>
                     </div>
-                    <Button variant="outline" size="sm" className="w-full" onClick={() => openOrderDetails(order)}>
-                      <Eye className="h-4 w-4 mr-2" />
-                      Ver detalhes
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" className="flex-1" onClick={() => openOrderDetails(order)}>
+                        <Eye className="h-4 w-4 mr-2" />
+                        Ver detalhes
+                      </Button>
+                      <Button variant="ghost" size="sm" className="flex-none text-red-600" onClick={() => handleDeleteClick(order)} disabled={isDeleting}>
+                        <Trash className="h-4 w-4 mr-2" />
+                        Excluir
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -286,9 +326,14 @@ const AdminOrders = () => {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button variant="ghost" size="icon" onClick={() => openOrderDetails(order)}>
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center justify-end gap-2">
+                            <Button variant="ghost" size="icon" onClick={() => openOrderDetails(order)}>
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(order)} disabled={isDeleting}>
+                              <Trash className="h-4 w-4 text-red-600" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -466,12 +511,95 @@ const AdminOrders = () => {
 
               {selectedOrder.notes && (
                 <div>
-                  <Label className="text-muted-foreground">Observações</Label>
-                  <p className="text-sm mt-1">{selectedOrder.notes}</p>
+                  <Label className="text-muted-foreground">Informações Adicionais</Label>
+                  <div className="mt-2 p-4 bg-muted rounded-lg space-y-3">
+                    {(() => {
+                      try {
+                        const notesData = JSON.parse(selectedOrder.notes);
+                        return (
+                          <>
+                            {notesData.freight && (
+                              <div>
+                                <p className="font-semibold text-sm mb-1">Informações de Frete:</p>
+                                <div className="text-sm space-y-1 pl-3">
+                                  <p><span className="text-muted-foreground">Transportadora:</span> {notesData.freight.carrier}</p>
+                                  <p><span className="text-muted-foreground">Serviço:</span> {notesData.freight.service}</p>
+                                  <p><span className="text-muted-foreground">Valor:</span> R$ {Number(notesData.freight.price).toFixed(2)}</p>
+                                  <p><span className="text-muted-foreground">Prazo:</span> {notesData.freight.delivery_time} dia(s)</p>
+                                </div>
+                              </div>
+                            )}
+                            {notesData.recipient_cpf && (
+                              <div>
+                                <p className="font-semibold text-sm mb-1">CPF do Destinatário:</p>
+                                <p className="text-sm pl-3">{notesData.recipient_cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')}</p>
+                              </div>
+                            )}
+                          </>
+                        );
+                      } catch (e) {
+                        // Se não for JSON, mostra como texto normal
+                        return <p className="text-sm">{selectedOrder.notes}</p>;
+                      }
+                    })()}
+                  </div>
                 </div>
               )}
+              <div className="flex justify-end">
+                <Button variant="outline" className="text-red-600" onClick={() => selectedOrder && handleDeleteClick(selectedOrder)} disabled={isDeleting}>
+                  <Trash className="h-4 w-4 mr-2" />
+                  Excluir pedido
+                </Button>
+              </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de confirmação de exclusão */}
+      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar exclusão</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p>
+              Tem certeza que deseja excluir o pedido
+              {orderToDelete && (
+                <span className="font-bold"> #{orderToDelete.id.slice(0, 8)}... </span>
+              )}
+              ?
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Esta ação não pode ser desfeita.
+            </p>
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setDeleteConfirmOpen(false)} 
+              disabled={isDeleting}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={confirmDeleteOrder} 
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Excluindo...
+                </>
+              ) : (
+                <>
+                  <Trash className="h-4 w-4 mr-2" />
+                  Excluir
+                </>
+              )}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
