@@ -25,8 +25,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Search, Eye, Loader2, Trash } from "lucide-react";
-import { ordersService } from "@/services";
+import { Search, Eye, Loader2, Trash, Truck } from "lucide-react";
+import { ordersService, shippingService } from "@/services";
 import type { OrderStatus } from "@/services";
 import { useToast } from "@/hooks/use-toast";
 
@@ -101,6 +101,7 @@ const AdminOrders = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState<OrderWithDetails | null>(null);
+  const [isCreatingShipment, setIsCreatingShipment] = useState(false);
 
   useEffect(() => {
     loadOrders();
@@ -200,6 +201,36 @@ const AdminOrders = () => {
       setIsDeleting(false);
       setDeleteConfirmOpen(false);
       setOrderToDelete(null);
+    }
+  };
+
+  const handleCreateShipment = async (orderId: string) => {
+    setIsCreatingShipment(true);
+    try {
+      const result = await shippingService.createShipment(orderId);
+      
+      toast({
+        title: 'Envio criado com sucesso!',
+        description: result.shipment_protocol ? `Protocolo: ${result.shipment_protocol}` : 'Envio gerado no Melhor Envio.',
+      });
+
+      // Recarregar pedidos para atualizar as informações
+      await loadOrders();
+      
+      // Se o modal estiver aberto, recarregar os dados do pedido selecionado
+      if (selectedOrder?.id === orderId) {
+        const updatedOrder = await ordersService.getById(orderId);
+        setSelectedOrder(updatedOrder as any);
+      }
+    } catch (error: any) {
+      console.error('Error creating shipment:', error);
+      toast({
+        title: 'Erro ao criar envio',
+        description: error.message || 'Não foi possível criar o envio no Melhor Envio.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsCreatingShipment(false);
     }
   };
 
@@ -408,6 +439,61 @@ const AdminOrders = () => {
                   </Button>
                 </div>
               </div>
+
+              {/* Botão para criar envio no Melhor Envio (se ainda não foi criado) */}
+              {(() => {
+                // Verificar se já tem protocolo
+                const hasProtocol = selectedOrder.melhor_envio_protocol || (selectedOrder as any).melhorEnvioProtocol;
+                
+                // Verificar se tem informações de frete do Melhor Envio nas notes
+                let hasMelhorEnvioFreight = false;
+                try {
+                  const notes = selectedOrder.notes ? JSON.parse(selectedOrder.notes) : null;
+                  hasMelhorEnvioFreight = notes?.freight?.carrier ? true : false;
+                } catch (e) {
+                  hasMelhorEnvioFreight = false;
+                }
+
+                // Só mostrar o botão se: não tem protocolo + tem frete Melhor Envio + status adequado
+                const canCreateShipment = !hasProtocol && 
+                                         hasMelhorEnvioFreight && 
+                                         (selectedOrder.status === 'confirmed' || 
+                                          selectedOrder.status === 'shipped' || 
+                                          selectedOrder.status === 'delivered');
+
+                if (!canCreateShipment) return null;
+
+                return (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-1">
+                        <p className="font-semibold text-sm text-yellow-900">Envio não gerado no Melhor Envio</p>
+                        <p className="text-sm text-yellow-700 mt-1">
+                          Este pedido usa Melhor Envio mas o envio ainda não foi criado. Clique no botão para gerar o envio.
+                        </p>
+                      </div>
+                      <Button
+                        onClick={() => handleCreateShipment(selectedOrder.id)}
+                        disabled={isCreatingShipment}
+                        variant="default"
+                        size="sm"
+                      >
+                        {isCreatingShipment ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            Gerando...
+                          </>
+                        ) : (
+                          <>
+                            <Truck className="h-4 w-4 mr-2" />
+                            Gerar Envio
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Melhor Envio protocol (if present) */}
               {(selectedOrder.melhor_envio_protocol || (selectedOrder as any).melhorEnvioProtocol) && (
