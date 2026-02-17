@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Upload, X, Pencil, Save, Plus } from "lucide-react";
+import { Loader2, Upload, X, Pencil, Save, Plus, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +37,9 @@ const AdminCategories = () => {
   const [newCategoryIcon, setNewCategoryIcon] = useState("");
   const [newCategoryImage, setNewCategoryImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -307,6 +310,54 @@ const AdminCategories = () => {
     setImagePreview(null);
   };
 
+  const handleDeleteClick = (category: Category) => {
+    setCategoryToDelete(category);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteCategory = async () => {
+    if (!categoryToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      // Deletar imagem do storage se existir
+      if (categoryToDelete.image_url) {
+        try {
+          await storageService.deleteImage(categoryToDelete.image_url);
+        } catch (error) {
+          console.error("Error deleting image from storage:", error);
+          // Continua mesmo se falhar ao deletar a imagem
+        }
+      }
+
+      // Deletar categoria do banco
+      const { error } = await supabase
+        .from('categories')
+        .delete()
+        .eq('id', categoryToDelete.id);
+
+      if (error) throw error;
+
+      setCategories(categories.filter(c => c.id !== categoryToDelete.id));
+      setDeleteDialogOpen(false);
+      setCategoryToDelete(null);
+
+      toast({
+        title: "Categoria deletada",
+        description: `A categoria "${categoryToDelete.name}" foi removida com sucesso.`,
+      });
+    } catch (error: any) {
+      console.error("Error deleting category:", error);
+      toast({
+        title: "Erro ao deletar categoria",
+        description: error.message || "Não foi possível deletar a categoria.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -392,6 +443,14 @@ const AdminCategories = () => {
                       onClick={() => setEditingId(category.id)}
                     >
                       <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => handleDeleteClick(category)}
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 )}
@@ -557,6 +616,45 @@ const AdminCategories = () => {
                 </>
               ) : (
                 "Criar Categoria"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de confirmação de deleção */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Deletar Categoria</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja deletar a categoria "{categoryToDelete?.name}"?
+              Esta ação não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteDialogOpen(false);
+                setCategoryToDelete(null);
+              }}
+              disabled={isDeleting}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteCategory}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deletando...
+                </>
+              ) : (
+                "Deletar"
               )}
             </Button>
           </DialogFooter>
