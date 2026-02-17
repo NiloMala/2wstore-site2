@@ -201,6 +201,8 @@ serve(async (req) => {
 
     console.log('Destination state normalized:', destinationState);
     console.log('Origin state normalized:', originState);
+    console.log('Raw destination state:', shippingAddress.state);
+    console.log('Raw origin state:', config.origin_state);
 
     // Buscar serviços disponíveis do Melhor Envio para pegar o service_id correto
     const melhorEnvioUrl = config.is_sandbox
@@ -306,6 +308,9 @@ serve(async (req) => {
     };
 
     console.log('Melhor Envio Cart Payload:', JSON.stringify(cartPayload, null, 2));
+    console.log('CRITICAL - Destination state_abbr:', cartPayload.to.state_abbr);
+    console.log('CRITICAL - Origin state_abbr:', cartPayload.from.state_abbr);
+    console.log('CRITICAL - Destination postal_code:', cartPayload.to.postal_code);
 
     // Adicionar ao carrinho do Melhor Envio
     const cartUrl = config.is_sandbox
@@ -326,6 +331,8 @@ serve(async (req) => {
     if (!cartResponse.ok) {
       const errorText = await cartResponse.text();
       console.error('Erro ao adicionar ao carrinho:', errorText);
+      console.error('Status:', cartResponse.status);
+      console.error('Payload que foi enviado:', JSON.stringify(cartPayload, null, 2));
       throw new Error(`Erro ao criar envio no Melhor Envio: ${errorText}`);
     }
 
