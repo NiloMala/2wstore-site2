@@ -35,6 +35,8 @@ const AdminCategories = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newCategoryIcon, setNewCategoryIcon] = useState("");
+  const [newCategoryImage, setNewCategoryImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -175,6 +177,27 @@ const AdminCategories = () => {
       return;
     }
 
+    // Validar imagem se fornecida
+    if (newCategoryImage) {
+      if (!newCategoryImage.type.startsWith('image/')) {
+        toast({
+          title: "Arquivo inválido",
+          description: "Por favor, selecione uma imagem (JPG, PNG, etc).",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (newCategoryImage.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Arquivo muito grande",
+          description: "A imagem deve ter no máximo 5MB.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     setIsCreating(true);
     try {
       // Gerar slug a partir do nome
@@ -185,6 +208,7 @@ const AdminCategories = () => {
         .replace(/[^a-z0-9]+/g, '-') // Substitui caracteres especiais por hífen
         .replace(/^-+|-+$/g, ''); // Remove hífens do início e fim
 
+      // Criar categoria
       const { data, error } = await supabase
         .from('categories')
         .insert({
@@ -198,14 +222,43 @@ const AdminCategories = () => {
 
       if (error) throw error;
 
-      setCategories([...categories, data]);
+      let finalData = data;
+
+      // Se houver imagem, fazer upload
+      if (newCategoryImage) {
+        try {
+          const imageUrl = await storageService.uploadImage(newCategoryImage, 'categories');
+
+          // Atualizar categoria com URL da imagem
+          const { data: updatedData, error: updateError } = await supabase
+            .from('categories')
+            .update({ image_url: imageUrl })
+            .eq('id', data.id)
+            .select()
+            .single();
+
+          if (updateError) throw updateError;
+          finalData = updatedData;
+        } catch (uploadError) {
+          console.error("Error uploading image:", uploadError);
+          toast({
+            title: "Categoria criada (sem imagem)",
+            description: "A categoria foi criada, mas houve erro ao fazer upload da imagem.",
+            variant: "default",
+          });
+        }
+      }
+
+      setCategories([...categories, finalData]);
       setIsCreateDialogOpen(false);
       setNewCategoryName("");
       setNewCategoryIcon("");
+      setNewCategoryImage(null);
+      setImagePreview(null);
 
       toast({
         title: "Categoria criada",
-        description: `A categoria "${data.name}" foi criada com sucesso.`,
+        description: `A categoria "${finalData.name}" foi criada com sucesso.`,
       });
     } catch (error: any) {
       console.error("Error creating category:", error);
@@ -217,6 +270,41 @@ const AdminCategories = () => {
     } finally {
       setIsCreating(false);
     }
+  };
+
+  const handleNewCategoryImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Arquivo inválido",
+        description: "Por favor, selecione uma imagem (JPG, PNG, etc).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Arquivo muito grande",
+        description: "A imagem deve ter no máximo 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setNewCategoryImage(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveNewCategoryImage = () => {
+    setNewCategoryImage(null);
+    setImagePreview(null);
   };
 
   if (isLoading) {
@@ -401,6 +489,50 @@ const AdminCategories = () => {
                 Deixe vazio para usar 📦 como padrão. Você pode editar depois.
               </p>
             </div>
+
+            <div className="space-y-2">
+              <Label>Imagem da Categoria (opcional)</Label>
+              {imagePreview ? (
+                <div className="relative w-full h-40 rounded-lg overflow-hidden border">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
+                  <Button
+                    size="icon"
+                    variant="destructive"
+                    className="absolute top-2 right-2"
+                    onClick={handleRemoveNewCategoryImage}
+                    type="button"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleNewCategoryImageSelect}
+                    className="hidden"
+                    id="newCategoryImageInput"
+                  />
+                  <Label
+                    htmlFor="newCategoryImageInput"
+                    className="cursor-pointer flex flex-col items-center gap-2"
+                  >
+                    <Upload className="h-8 w-8 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">
+                      Clique para selecionar uma imagem
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      JPG, PNG ou GIF (máx. 5MB)
+                    </span>
+                  </Label>
+                </div>
+              )}
+            </div>
           </div>
 
           <DialogFooter>
@@ -410,6 +542,8 @@ const AdminCategories = () => {
                 setIsCreateDialogOpen(false);
                 setNewCategoryName("");
                 setNewCategoryIcon("");
+                setNewCategoryImage(null);
+                setImagePreview(null);
               }}
               disabled={isCreating}
             >
