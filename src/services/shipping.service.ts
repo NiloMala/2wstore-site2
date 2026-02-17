@@ -172,4 +172,18 @@ export const shippingService = {
     }
     return `${days} dias úteis`;
   },
+
+  /**
+   * Get Melhor Envio settings (alias for getSettings)
+   */
+  async getMelhorEnvioSettings() {
+    return this.getSettings();
+  },
+
+  /**
+   * Update Melhor Envio settings (alias for updateSettings)
+   */
+  async updateMelhorEnvioSettings(settings: Partial<ShippingSettings>) {
+    return this.updateSettings(settings);
+  },
 };

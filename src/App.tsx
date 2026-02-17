@@ -38,6 +38,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProducts from "./pages/admin/AdminProducts";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminDelivery from "./pages/admin/AdminDelivery";
+import AdminShipping from "./pages/admin/AdminShipping";
 import AdminCoupons from "./pages/admin/AdminCoupons";
 import AdminBanners from "./pages/admin/AdminBanners";
 import AdminCategories from "./pages/admin/AdminCategories";
@@ -64,6 +65,7 @@ const App = () => (
                 <Route path="categorias" element={<AdminCategories />} />
                 <Route path="pedidos" element={<AdminOrders />} />
                 <Route path="entregas" element={<AdminDelivery />} />
+                <Route path="melhor-envio" element={<AdminShipping />} />
                 <Route path="cupons" element={<AdminCoupons />} />
                 <Route path="banners" element={<AdminBanners />} />
                 <Route path="configuracoes" element={<AdminSettings />} />
