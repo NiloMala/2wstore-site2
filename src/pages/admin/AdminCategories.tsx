@@ -3,7 +3,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Upload, X, Pencil, Save } from "lucide-react";
+import { Loader2, Upload, X, Pencil, Save, Plus } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { productService } from "@/services/product.service";
 import { storageService } from "@/services";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,6 +31,10 @@ const AdminCategories = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryIcon, setNewCategoryIcon] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -153,6 +165,60 @@ const AdminCategories = () => {
     }
   };
 
+  const handleCreateCategory = async () => {
+    if (!newCategoryName.trim()) {
+      toast({
+        title: "Erro",
+        description: "O nome da categoria é obrigatório.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      // Gerar slug a partir do nome
+      const slug = newCategoryName
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+        .replace(/[^a-z0-9]+/g, '-') // Substitui caracteres especiais por hífen
+        .replace(/^-+|-+$/g, ''); // Remove hífens do início e fim
+
+      const { data, error } = await supabase
+        .from('categories')
+        .insert({
+          name: newCategoryName.trim(),
+          slug: slug,
+          icon: newCategoryIcon.trim() || '📦',
+          display_order: categories.length,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setCategories([...categories, data]);
+      setIsCreateDialogOpen(false);
+      setNewCategoryName("");
+      setNewCategoryIcon("");
+
+      toast({
+        title: "Categoria criada",
+        description: `A categoria "${data.name}" foi criada com sucesso.`,
+      });
+    } catch (error: any) {
+      console.error("Error creating category:", error);
+      toast({
+        title: "Erro ao criar categoria",
+        description: error.message || "Não foi possível criar a categoria.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -163,11 +229,17 @@ const AdminCategories = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Categorias</h1>
-        <p className="text-muted-foreground mt-1">
-          Gerencie as imagens e ícones das categorias.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Categorias</h1>
+          <p className="text-muted-foreground mt-1">
+            Gerencie as imagens e ícones das categorias.
+          </p>
+        </div>
+        <Button onClick={() => setIsCreateDialogOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Nova Categoria
+        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -293,6 +365,69 @@ const AdminCategories = () => {
           </ul>
         </CardContent>
       </Card>
+
+      {/* Dialog de criação */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nova Categoria</DialogTitle>
+            <DialogDescription>
+              Crie uma nova categoria para organizar seus produtos.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="categoryName">Nome da Categoria *</Label>
+              <Input
+                id="categoryName"
+                placeholder="Ex: Camisetas, Calças, Acessórios..."
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="categoryIcon">Emoji (opcional)</Label>
+              <Input
+                id="categoryIcon"
+                placeholder="👕"
+                value={newCategoryIcon}
+                onChange={(e) => setNewCategoryIcon(e.target.value)}
+                maxLength={2}
+                className="text-2xl text-center"
+              />
+              <p className="text-xs text-muted-foreground">
+                Deixe vazio para usar 📦 como padrão. Você pode editar depois.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsCreateDialogOpen(false);
+                setNewCategoryName("");
+                setNewCategoryIcon("");
+              }}
+              disabled={isCreating}
+            >
+              Cancelar
+            </Button>
+            <Button onClick={handleCreateCategory} disabled={isCreating}>
+              {isCreating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Criando...
+                </>
+              ) : (
+                "Criar Categoria"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
