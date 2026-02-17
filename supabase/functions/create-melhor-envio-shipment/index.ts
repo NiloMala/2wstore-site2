@@ -141,6 +141,15 @@ serve(async (req) => {
       console.log('Using CPF from order notes:', customerCpf);
     }
 
+    // Validações importantes
+    if (!customerCpf || customerCpf.length !== 11) {
+      throw new Error('CPF do destinatário inválido ou não informado. É obrigatório ter um CPF válido para criar envios no Melhor Envio.');
+    }
+
+    if (!customerPhone || customerPhone.length < 10) {
+      throw new Error('Telefone do destinatário inválido ou não informado. É obrigatório ter um telefone válido para criar envios no Melhor Envio.');
+    }
+
     // Buscar configuração do Melhor Envio
     const { data: config, error: configError } = await supabaseClient
       .from('shipping_settings')
@@ -150,7 +159,12 @@ serve(async (req) => {
       .single();
 
     if (configError || !config) {
-      throw new Error('Melhor Envio não configurado');
+      throw new Error('Melhor Envio não configurado. Configure as credenciais do Melhor Envio nas configurações de entrega.');
+    }
+
+    // Validar dados de origem
+    if (!config.origin_postal_code || !config.origin_name) {
+      throw new Error('Dados de origem (loja) incompletos. Configure o endereço da loja nas configurações de entrega.');
     }
 
     // Preparar endereço do destinatário
@@ -320,8 +334,23 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Create Shipment Error:', error);
+    
+    // Melhorar mensagem de erro para o frontend
+    let errorMessage = 'Erro desconhecido ao criar envio';
+    
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    }
+    
+    console.error('Detailed error:', errorMessage);
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: errorMessage,
+        details: error instanceof Error ? error.stack : undefined
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }

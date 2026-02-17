@@ -224,10 +224,21 @@ const AdminOrders = () => {
       }
     } catch (error: any) {
       console.error('Error creating shipment:', error);
+      
+      // Extrair mensagem de erro mais específica
+      let errorMessage = 'Não foi possível criar o envio no Melhor Envio.';
+      
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.context?.message) {
+        errorMessage = error.context.message;
+      }
+      
       toast({
         title: 'Erro ao criar envio',
-        description: error.message || 'Não foi possível criar o envio no Melhor Envio.',
+        description: errorMessage,
         variant: 'destructive',
+        duration: 8000, // Aumenta duração para mensagens de erro
       });
     } finally {
       setIsCreatingShipment(false);
