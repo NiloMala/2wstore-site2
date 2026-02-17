@@ -34,10 +34,39 @@ const ProductDetail = () => {
   const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+
+  // Swipe handlers for mobile image navigation
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(0);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = (imagesLength: number) => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && selectedImageIndex < imagesLength - 1) {
+      setSelectedImageIndex(selectedImageIndex + 1);
+    }
+    if (isRightSwipe && selectedImageIndex > 0) {
+      setSelectedImageIndex(selectedImageIndex - 1);
+    }
+  };
 
   // Fetch product by ID
   useEffect(() => {
@@ -139,12 +168,33 @@ const ProductDetail = () => {
 
               return (
                 <>
-                  <div className="aspect-[4/5] lg:aspect-[3/4] rounded-lg lg:rounded-xl overflow-hidden bg-muted flex items-center justify-center">
+                  <div 
+                    className="aspect-[4/5] lg:aspect-[3/4] rounded-lg lg:rounded-xl overflow-hidden bg-muted flex items-center justify-center relative touch-pan-y"
+                    onTouchStart={onTouchStart}
+                    onTouchMove={onTouchMove}
+                    onTouchEnd={() => onTouchEnd(images.length)}
+                  >
                     <img
                       src={currentImage}
                       alt={product.name}
-                      className="w-full h-full object-contain"
+                      className="w-full h-full object-contain select-none"
+                      draggable={false}
                     />
+                    {/* Indicador de navegação */}
+                    {images.length > 1 && (
+                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 lg:hidden">
+                        {images.map((_, idx) => (
+                          <div
+                            key={idx}
+                            className={`w-1.5 h-1.5 rounded-full transition-all ${
+                              selectedImageIndex === idx
+                                ? "bg-white w-4"
+                                : "bg-white/50"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
                   {/* Thumbnails - horizontal scroll on mobile */}
                   <div className="flex lg:grid lg:grid-cols-4 gap-1.5 lg:gap-2 overflow-x-auto pb-1 lg:pb-0 scrollbar-hide">
