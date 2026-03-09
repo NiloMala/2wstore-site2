@@ -72,6 +72,7 @@ export type Database = {
           subtitle: string | null
           description: string | null
           image_url: string
+          mobile_image_url: string | null
           link_url: string | null
           position: Database["public"]["Enums"]["banner_position"]
           display_order: number | null
@@ -87,6 +88,7 @@ export type Database = {
           subtitle?: string | null
           description?: string | null
           image_url: string
+          mobile_image_url?: string | null
           link_url?: string | null
           position?: Database["public"]["Enums"]["banner_position"]
           display_order?: number | null
@@ -102,6 +104,7 @@ export type Database = {
           subtitle?: string | null
           description?: string | null
           image_url?: string
+          mobile_image_url?: string | null
           link_url?: string | null
           position?: Database["public"]["Enums"]["banner_position"]
           display_order?: number | null

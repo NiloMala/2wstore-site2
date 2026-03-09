@@ -46,6 +46,7 @@ const AdminBanners = () => {
     subtitle: "",
     description: "",
     imageUrl: "",
+    mobileImageUrl: "",
     linkUrl: "",
     position: "hero" as BannerPosition,
     isActive: true,
@@ -53,6 +54,8 @@ const AdminBanners = () => {
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedMobileFile, setSelectedMobileFile] = useState<File | null>(null);
+  const [mobileImagePreview, setMobileImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
 
@@ -84,6 +87,7 @@ const AdminBanners = () => {
       subtitle: "",
       description: "",
       imageUrl: "",
+      mobileImageUrl: "",
       linkUrl: "",
       position: "hero",
       isActive: true,
@@ -91,6 +95,8 @@ const AdminBanners = () => {
     });
     setSelectedFile(null);
     setImagePreview(null);
+    setSelectedMobileFile(null);
+    setMobileImagePreview(null);
     setIsDialogOpen(true);
   };
 
@@ -101,6 +107,7 @@ const AdminBanners = () => {
       subtitle: banner.subtitle || "",
       description: banner.description || "",
       imageUrl: banner.image_url || "",
+      mobileImageUrl: banner.mobile_image_url || "",
       linkUrl: banner.link_url || "",
       position: banner.position as BannerPosition,
       isActive: banner.is_active ?? true,
@@ -108,6 +115,8 @@ const AdminBanners = () => {
     });
     setSelectedFile(null);
     setImagePreview(banner.image_url || null);
+    setSelectedMobileFile(null);
+    setMobileImagePreview(banner.mobile_image_url || null);
     setIsDialogOpen(true);
   };
 
@@ -151,6 +160,40 @@ const AdminBanners = () => {
     setImagePreview(editingBanner?.image_url || null);
   };
 
+  const handleMobileFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Arquivo inválido",
+          description: "Por favor, selecione uma imagem (JPG, PNG, etc).",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Arquivo muito grande",
+          description: "A imagem deve ter no máximo 5MB.",
+          variant: "destructive",
+        });
+        return;
+      }
+      setSelectedMobileFile(file);
+      const previewUrl = URL.createObjectURL(file);
+      setMobileImagePreview(previewUrl);
+      setFormData(prev => ({ ...prev, mobileImageUrl: "" }));
+    }
+  };
+
+  const clearSelectedMobileFile = () => {
+    setSelectedMobileFile(null);
+    if (mobileImagePreview && mobileImagePreview.startsWith('blob:')) {
+      URL.revokeObjectURL(mobileImagePreview);
+    }
+    setMobileImagePreview(editingBanner?.mobile_image_url || null);
+  };
+
   const handleSave = async () => {
     if (!formData.title.trim()) {
       toast({
@@ -165,8 +208,9 @@ const AdminBanners = () => {
 
     try {
       let imageUrl = formData.imageUrl || editingBanner?.image_url || "/placeholder.svg";
+      let mobileImageUrl: string | null = formData.mobileImageUrl || editingBanner?.mobile_image_url || null;
 
-      // Upload new image if selected
+      // Upload desktop image if selected
       if (selectedFile) {
         setIsUploading(true);
         try {
@@ -185,11 +229,31 @@ const AdminBanners = () => {
         setIsUploading(false);
       }
 
+      // Upload mobile image if selected
+      if (selectedMobileFile) {
+        setIsUploading(true);
+        try {
+          mobileImageUrl = await storageService.uploadImage(selectedMobileFile, 'banners');
+        } catch (uploadError) {
+          console.error("Error uploading mobile image:", uploadError);
+          toast({
+            title: "Erro no upload da imagem mobile",
+            description: "Não foi possível fazer upload da imagem para celular. Tente novamente.",
+            variant: "destructive",
+          });
+          setIsSaving(false);
+          setIsUploading(false);
+          return;
+        }
+        setIsUploading(false);
+      }
+
       const bannerData = {
         title: formData.title,
         subtitle: formData.subtitle || null,
         description: formData.description || null,
         image_url: imageUrl,
+        mobile_image_url: mobileImageUrl,
         link_url: formData.linkUrl || null,
         position: formData.position,
         is_active: formData.isActive,
@@ -371,14 +435,15 @@ const AdminBanners = () => {
                 </p>
               </div>
               <div className="grid gap-2">
-                <Label>Imagem do Banner</Label>
+                <Label>🖥️ Imagem Desktop</Label>
+                <p className="text-xs text-muted-foreground -mt-1">Exibida em telas maiores (recomendado: 1920×600px, landscape)</p>
 
-                {/* Image Preview */}
+                {/* Desktop Image Preview */}
                 {imagePreview && (
                   <div className="relative w-full h-32 rounded-lg overflow-hidden bg-muted">
                     <img
                       src={imagePreview}
-                      alt="Preview"
+                      alt="Preview Desktop"
                       className="w-full h-full object-cover"
                     />
                     {selectedFile && (
@@ -393,7 +458,6 @@ const AdminBanners = () => {
                   </div>
                 )}
 
-                {/* File Upload */}
                 <div className="flex gap-2">
                   <label className="flex-1">
                     <div className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
@@ -411,7 +475,6 @@ const AdminBanners = () => {
                   </label>
                 </div>
 
-                {/* Or use URL */}
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-px bg-border" />
                   <span className="text-xs text-muted-foreground">ou cole uma URL</span>
@@ -429,6 +492,70 @@ const AdminBanners = () => {
                   }}
                   placeholder="https://exemplo.com/imagem.jpg"
                   disabled={!!selectedFile}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Formatos aceitos: JPG, PNG, WebP (máx. 5MB)
+                </p>
+              </div>
+
+              <div className="grid gap-2">
+                <Label>📱 Imagem Celular <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+                <p className="text-xs text-muted-foreground -mt-1">Se não subir, usará a imagem desktop. Recomendado: 600×800px, portrait (retrato)</p>
+
+                {/* Mobile Image Preview */}
+                {mobileImagePreview && (
+                  <div className="relative w-full h-32 rounded-lg overflow-hidden bg-muted">
+                    <img
+                      src={mobileImagePreview}
+                      alt="Preview Celular"
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={clearSelectedMobileFile}
+                      className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  <label className="flex-1">
+                    <div className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
+                      <Upload className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">
+                        {selectedMobileFile ? selectedMobileFile.name : "Escolher imagem para celular"}
+                      </span>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleMobileFileSelect}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-px bg-border" />
+                  <span className="text-xs text-muted-foreground">ou cole uma URL</span>
+                  <div className="flex-1 h-px bg-border" />
+                </div>
+                <Input
+                  id="mobileImageUrl"
+                  value={formData.mobileImageUrl}
+                  onChange={(e) => {
+                    setFormData({ ...formData, mobileImageUrl: e.target.value });
+                    if (e.target.value) {
+                      setSelectedMobileFile(null);
+                      setMobileImagePreview(e.target.value);
+                    } else {
+                      setMobileImagePreview(null);
+                    }
+                  }}
+                  placeholder="https://exemplo.com/imagem-mobile.jpg"
+                  disabled={!!selectedMobileFile}
                 />
                 <p className="text-xs text-muted-foreground">
                   Formatos aceitos: JPG, PNG, WebP (máx. 5MB)
@@ -482,7 +609,7 @@ const AdminBanners = () => {
               </div>
               <Button onClick={handleSave} className="mt-4" disabled={isSaving || isUploading}>
                 {(isSaving || isUploading) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                {isUploading ? "Enviando imagem..." : editingBanner ? "Salvar Alterações" : "Criar Banner"}
+                {isUploading ? "Enviando imagens..." : editingBanner ? "Salvar Alterações" : "Criar Banner"}
               </Button>
             </div>
           </DialogContent>
@@ -644,6 +771,7 @@ const AdminBanners = () => {
             <li>• <strong>Banner Principal:</strong> Aparece no topo da página inicial</li>
             <li>• <strong>Promoção:</strong> Aparece na seção de promoções da home</li>
             <li>• <strong>Categoria:</strong> Será usado nas páginas de categoria</li>
+            <li>• <strong>Imagem Celular:</strong> Evita cortes em telas pequenas — suba uma versão portrait (retrato)</li>
             <li>• Apenas banners ativos são exibidos no site</li>
           </ul>
         </CardContent>
