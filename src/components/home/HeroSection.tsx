@@ -9,7 +9,7 @@ export const HeroSection = () => {
   const mobileBackgroundImage = banner?.mobile_image_url || backgroundImage;
 
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-[45vw] sm:min-h-[55vw] md:min-h-[60vh] lg:min-h-[90vh] flex items-center justify-center overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0">
         <picture className="w-full h-full block">
@@ -19,7 +19,7 @@ export const HeroSection = () => {
           <img
             src={backgroundImage}
             alt="2WL Store Hero"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover object-center"
           />
         </picture>
       </div>
