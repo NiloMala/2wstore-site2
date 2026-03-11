@@ -86,7 +86,7 @@ export const PromoSection = () => {
       } : undefined}
     >
       {/* Overlay escuro se tiver imagem, senão usa gradiente */}
-      <div className={`absolute inset-0 ${backgroundImage ? 'bg-black/40' : 'bg-hero-gradient'}`} />
+      {!backgroundImage && <div className="absolute inset-0 bg-hero-gradient" />}
 
       <div className="container px-4 lg:px-8 relative z-10">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-16">
