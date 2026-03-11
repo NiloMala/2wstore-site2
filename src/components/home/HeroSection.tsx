@@ -9,7 +9,7 @@ export const HeroSection = () => {
   const mobileBackgroundImage = banner?.mobile_image_url || backgroundImage;
 
   return (
-    <section className="relative w-full overflow-hidden">
+    <section className="relative w-full overflow-hidden pt-16 lg:pt-20">
       {/* Background Image — height is driven by the image itself, no cropping */}
       <picture className="w-full block">
         {/* Mobile: portrait image shown on screens smaller than 640px */}
