@@ -72,11 +72,14 @@ export type Database = {
           subtitle: string | null
           description: string | null
           image_url: string
+          image_url_2: string | null
           mobile_image_url: string | null
+          mobile_image_url_2: string | null
           link_url: string | null
           position: Database["public"]["Enums"]["banner_position"]
           display_order: number | null
           is_active: boolean | null
+          show_cta_button: boolean
           starts_at: string | null
           ends_at: string | null
           created_at: string
@@ -88,11 +91,14 @@ export type Database = {
           subtitle?: string | null
           description?: string | null
           image_url: string
+          image_url_2?: string | null
           mobile_image_url?: string | null
+          mobile_image_url_2?: string | null
           link_url?: string | null
           position?: Database["public"]["Enums"]["banner_position"]
           display_order?: number | null
           is_active?: boolean | null
+          show_cta_button?: boolean
           starts_at?: string | null
           ends_at?: string | null
           created_at?: string
@@ -104,11 +110,14 @@ export type Database = {
           subtitle?: string | null
           description?: string | null
           image_url?: string
+          image_url_2?: string | null
           mobile_image_url?: string | null
+          mobile_image_url_2?: string | null
           link_url?: string | null
           position?: Database["public"]["Enums"]["banner_position"]
           display_order?: number | null
           is_active?: boolean | null
+          show_cta_button?: boolean
           starts_at?: string | null
           ends_at?: string | null
           created_at?: string

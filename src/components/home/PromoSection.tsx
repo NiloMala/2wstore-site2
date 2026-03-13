@@ -25,6 +25,31 @@ export const PromoSection = () => {
     showWithoutBanner: true,
   });
 
+  // Carousel state
+  const [slide, setSlide] = useState(0);
+
+  const desktopImages = [
+    ...(banner?.image_url ? [banner.image_url] : []),
+    ...(banner?.image_url_2 ? [banner.image_url_2] : []),
+  ];
+
+  const mobileImages = banner?.mobile_image_url_2
+    ? [
+        banner.mobile_image_url || banner?.image_url || "",
+        banner.mobile_image_url_2,
+      ]
+    : [banner?.mobile_image_url || desktopImages[0] || ""];
+
+  const hasCarousel = desktopImages.length > 1;
+
+  useEffect(() => {
+    if (!hasCarousel) return;
+    const id = setInterval(() => setSlide((s) => (s + 1) % desktopImages.length), 5000);
+    return () => clearInterval(id);
+  }, [hasCarousel, desktopImages.length]);
+
+  useEffect(() => { setSlide(0); }, [banner?.id]);
+
   useEffect(() => {
     settingsService.getPromoDefaults().then(setDefaults).catch(console.error);
   }, []);
@@ -74,21 +99,48 @@ export const PromoSection = () => {
     return () => clearInterval(interval);
   }, [banner?.ends_at]);
 
-  const backgroundImage = banner?.image_url;
-  const mobileBackgroundImage = banner?.mobile_image_url || backgroundImage;
-
   return (
     <section className="relative w-full overflow-hidden">
-      {/* Elemento que define a altura da seção */}
-      {backgroundImage ? (
-        <picture className="w-full block">
-          <source media="(max-width: 639px)" srcSet={mobileBackgroundImage ?? undefined} />
-          <img
-            src={backgroundImage}
-            alt=""
-            className="w-full h-auto block"
-          />
-        </picture>
+      {/* Background carousel / static image */}
+      {desktopImages.length > 0 ? (
+        <div className="relative w-full">
+          {/* Invisible anchor for height */}
+          <picture className="invisible pointer-events-none select-none" aria-hidden="true">
+            <source media="(max-width: 639px)" srcSet={mobileImages[0] || undefined} />
+            <img src={desktopImages[0]} alt="" className="w-full h-auto block" />
+          </picture>
+
+          {desktopImages.map((src, i) => {
+            const mobileSrc = mobileImages[Math.min(i, mobileImages.length - 1)];
+            return (
+              <picture
+                key={i}
+                className={`absolute inset-0 w-full h-full transition-opacity duration-700 ${
+                  i === slide ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                <source media="(max-width: 639px)" srcSet={mobileSrc || undefined} />
+                <img src={src} alt="" className="w-full h-full object-cover block" />
+              </picture>
+            );
+          })}
+
+          {/* Carousel dots */}
+          {hasCarousel && (
+            <div className="absolute bottom-14 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+              {desktopImages.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setSlide(i)}
+                  className={`w-2 h-2 rounded-full transition-all ${
+                    i === slide ? "bg-white scale-125" : "bg-white/50 hover:bg-white/75"
+                  }`}
+                  aria-label={`Slide ${i + 1}`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       ) : (
         <div className="w-full py-16 lg:py-24 bg-hero-gradient" />
       )}
@@ -111,12 +163,14 @@ export const PromoSection = () => {
                 <p className="text-lg text-primary-foreground/80 mb-8 max-w-lg">
                   {description}
                 </p>
-                <Button variant="hero" size="xl" asChild>
-                  <Link to={linkUrl}>
-                    Aproveitar agora
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
-                </Button>
+                {(banner?.show_cta_button ?? true) && (
+                  <Button variant="hero" size="xl" asChild>
+                    <Link to={linkUrl}>
+                      Aproveitar agora
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Link>
+                  </Button>
+                )}
               </div>
 
               {/* Timer - só mostra se tiver data definida */}
@@ -144,14 +198,16 @@ export const PromoSection = () => {
               )}
             </div>
 
-            {/* Botão centralizado - mobile e desktop como fallback */}
+            {/* Botão centralizado - mobile */}
             <div className="flex justify-center w-full lg:hidden">
-              <Button variant="hero" size="xl" asChild>
-                <Link to={linkUrl}>
-                  Aproveitar agora
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
+              {(banner?.show_cta_button ?? true) && (
+                <Button variant="hero" size="xl" asChild>
+                  <Link to={linkUrl}>
+                    Aproveitar agora
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
+                </Button>
+              )}
             </div>
           </div>
         </div>

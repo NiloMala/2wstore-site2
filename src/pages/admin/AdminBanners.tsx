@@ -46,16 +46,23 @@ const AdminBanners = () => {
     subtitle: "",
     description: "",
     imageUrl: "",
+    imageUrl2: "",
     mobileImageUrl: "",
+    mobileImageUrl2: "",
     linkUrl: "",
     position: "hero" as BannerPosition,
     isActive: true,
+    showCtaButton: true,
     endsAt: "",
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedFile2, setSelectedFile2] = useState<File | null>(null);
+  const [imagePreview2, setImagePreview2] = useState<string | null>(null);
   const [selectedMobileFile, setSelectedMobileFile] = useState<File | null>(null);
   const [mobileImagePreview, setMobileImagePreview] = useState<string | null>(null);
+  const [selectedMobileFile2, setSelectedMobileFile2] = useState<File | null>(null);
+  const [mobileImagePreview2, setMobileImagePreview2] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
 
@@ -87,16 +94,23 @@ const AdminBanners = () => {
       subtitle: "",
       description: "",
       imageUrl: "",
+      imageUrl2: "",
       mobileImageUrl: "",
+      mobileImageUrl2: "",
       linkUrl: "",
       position: "hero",
       isActive: true,
+      showCtaButton: true,
       endsAt: "",
     });
     setSelectedFile(null);
     setImagePreview(null);
+    setSelectedFile2(null);
+    setImagePreview2(null);
     setSelectedMobileFile(null);
     setMobileImagePreview(null);
+    setSelectedMobileFile2(null);
+    setMobileImagePreview2(null);
     setIsDialogOpen(true);
   };
 
@@ -107,16 +121,23 @@ const AdminBanners = () => {
       subtitle: banner.subtitle || "",
       description: banner.description || "",
       imageUrl: banner.image_url || "",
+      imageUrl2: banner.image_url_2 || "",
       mobileImageUrl: banner.mobile_image_url || "",
+      mobileImageUrl2: banner.mobile_image_url_2 || "",
       linkUrl: banner.link_url || "",
       position: banner.position as BannerPosition,
       isActive: banner.is_active ?? true,
+      showCtaButton: banner.show_cta_button ?? true,
       endsAt: banner.ends_at ? banner.ends_at.slice(0, 16) : "",
     });
     setSelectedFile(null);
     setImagePreview(banner.image_url || null);
+    setSelectedFile2(null);
+    setImagePreview2(banner.image_url_2 || null);
     setSelectedMobileFile(null);
     setMobileImagePreview(banner.mobile_image_url || null);
+    setSelectedMobileFile2(null);
+    setMobileImagePreview2(banner.mobile_image_url_2 || null);
     setIsDialogOpen(true);
   };
 
@@ -160,6 +181,31 @@ const AdminBanners = () => {
     setImagePreview(editingBanner?.image_url || null);
   };
 
+  const handleFile2Select = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast({ title: "Arquivo inválido", description: "Por favor, selecione uma imagem (JPG, PNG, etc).", variant: "destructive" });
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast({ title: "Arquivo muito grande", description: "A imagem deve ter no máximo 5MB.", variant: "destructive" });
+        return;
+      }
+      setSelectedFile2(file);
+      setImagePreview2(URL.createObjectURL(file));
+      setFormData(prev => ({ ...prev, imageUrl2: "" }));
+    }
+  };
+
+  const clearSelectedFile2 = () => {
+    setSelectedFile2(null);
+    if (imagePreview2 && imagePreview2.startsWith('blob:')) {
+      URL.revokeObjectURL(imagePreview2);
+    }
+    setImagePreview2(editingBanner?.image_url_2 || null);
+  };
+
   const handleMobileFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -194,6 +240,31 @@ const AdminBanners = () => {
     setMobileImagePreview(editingBanner?.mobile_image_url || null);
   };
 
+  const handleMobileFile2Select = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast({ title: "Arquivo inválido", description: "Por favor, selecione uma imagem (JPG, PNG, etc).", variant: "destructive" });
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast({ title: "Arquivo muito grande", description: "A imagem deve ter no máximo 5MB.", variant: "destructive" });
+        return;
+      }
+      setSelectedMobileFile2(file);
+      setMobileImagePreview2(URL.createObjectURL(file));
+      setFormData(prev => ({ ...prev, mobileImageUrl2: "" }));
+    }
+  };
+
+  const clearSelectedMobileFile2 = () => {
+    setSelectedMobileFile2(null);
+    if (mobileImagePreview2 && mobileImagePreview2.startsWith('blob:')) {
+      URL.revokeObjectURL(mobileImagePreview2);
+    }
+    setMobileImagePreview2(editingBanner?.mobile_image_url_2 || null);
+  };
+
   const handleSave = async () => {
     if (!formData.title.trim()) {
       toast({
@@ -208,44 +279,48 @@ const AdminBanners = () => {
 
     try {
       let imageUrl = formData.imageUrl || editingBanner?.image_url || "/placeholder.svg";
+      let imageUrl2: string | null = formData.imageUrl2 || editingBanner?.image_url_2 || null;
       let mobileImageUrl: string | null = formData.mobileImageUrl || editingBanner?.mobile_image_url || null;
+      let mobileImageUrl2: string | null = formData.mobileImageUrl2 || editingBanner?.mobile_image_url_2 || null;
 
-      // Upload desktop image if selected
-      if (selectedFile) {
+      const uploadOrFail = async (file: File, label: string): Promise<string | null> => {
         setIsUploading(true);
         try {
-          imageUrl = await storageService.uploadImage(selectedFile, 'banners');
+          const url = await storageService.uploadImage(file, 'banners');
+          setIsUploading(false);
+          return url;
         } catch (uploadError) {
-          console.error("Error uploading image:", uploadError);
+          console.error(`Error uploading ${label}:`, uploadError);
           toast({
-            title: "Erro no upload",
+            title: `Erro no upload (${label})`,
             description: "Não foi possível fazer upload da imagem. Tente novamente.",
             variant: "destructive",
           });
           setIsSaving(false);
           setIsUploading(false);
-          return;
+          return null;
         }
-        setIsUploading(false);
-      }
+      };
 
-      // Upload mobile image if selected
+      if (selectedFile) {
+        const url = await uploadOrFail(selectedFile, 'desktop 1');
+        if (!url) return;
+        imageUrl = url;
+      }
+      if (selectedFile2) {
+        const url = await uploadOrFail(selectedFile2, 'desktop 2');
+        if (!url) return;
+        imageUrl2 = url;
+      }
       if (selectedMobileFile) {
-        setIsUploading(true);
-        try {
-          mobileImageUrl = await storageService.uploadImage(selectedMobileFile, 'banners');
-        } catch (uploadError) {
-          console.error("Error uploading mobile image:", uploadError);
-          toast({
-            title: "Erro no upload da imagem mobile",
-            description: "Não foi possível fazer upload da imagem para celular. Tente novamente.",
-            variant: "destructive",
-          });
-          setIsSaving(false);
-          setIsUploading(false);
-          return;
-        }
-        setIsUploading(false);
+        const url = await uploadOrFail(selectedMobileFile, 'mobile 1');
+        if (!url) return;
+        mobileImageUrl = url;
+      }
+      if (selectedMobileFile2) {
+        const url = await uploadOrFail(selectedMobileFile2, 'mobile 2');
+        if (!url) return;
+        mobileImageUrl2 = url;
       }
 
       const bannerData = {
@@ -253,10 +328,13 @@ const AdminBanners = () => {
         subtitle: formData.subtitle || null,
         description: formData.description || null,
         image_url: imageUrl,
+        image_url_2: imageUrl2,
         mobile_image_url: mobileImageUrl,
+        mobile_image_url_2: mobileImageUrl2,
         link_url: formData.linkUrl || null,
         position: formData.position,
         is_active: formData.isActive,
+        show_cta_button: formData.showCtaButton,
         display_order: editingBanner?.display_order || banners.length + 1,
         ends_at: formData.endsAt ? new Date(formData.endsAt).toISOString() : null,
       };
@@ -498,6 +576,58 @@ const AdminBanners = () => {
                 </p>
               </div>
 
+              {/* Desktop Image 2 */}
+              <div className="grid gap-2">
+                <Label>🖥️ Imagem Desktop 2 <span className="text-muted-foreground font-normal">(opcional — carrossel)</span></Label>
+                <p className="text-xs text-muted-foreground -mt-1">Se informada, alterna com a imagem 1 a cada 5 segundos</p>
+
+                {imagePreview2 && (
+                  <div className="relative w-full h-32 rounded-lg overflow-hidden bg-muted">
+                    <img src={imagePreview2} alt="Preview Desktop 2" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={clearSelectedFile2}
+                      className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  <label className="flex-1">
+                    <div className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
+                      <Upload className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">
+                        {selectedFile2 ? selectedFile2.name : "Escolher imagem 2"}
+                      </span>
+                    </div>
+                    <input type="file" accept="image/*" onChange={handleFile2Select} className="hidden" />
+                  </label>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-px bg-border" />
+                  <span className="text-xs text-muted-foreground">ou cole uma URL</span>
+                  <div className="flex-1 h-px bg-border" />
+                </div>
+                <Input
+                  value={formData.imageUrl2}
+                  onChange={(e) => {
+                    setFormData({ ...formData, imageUrl2: e.target.value });
+                    if (e.target.value) {
+                      setSelectedFile2(null);
+                      setImagePreview2(e.target.value);
+                    } else {
+                      setImagePreview2(null);
+                    }
+                  }}
+                  placeholder="https://exemplo.com/imagem2.jpg"
+                  disabled={!!selectedFile2}
+                />
+                <p className="text-xs text-muted-foreground">Formatos aceitos: JPG, PNG, WebP (máx. 5MB)</p>
+              </div>
+
               <div className="grid gap-2">
                 <Label>📱 Imagem Celular <span className="text-muted-foreground font-normal">(opcional)</span></Label>
                 <p className="text-xs text-muted-foreground -mt-1">Se não subir, usará a imagem desktop. Recomendado: 600×800px, portrait (retrato)</p>
@@ -561,6 +691,59 @@ const AdminBanners = () => {
                   Formatos aceitos: JPG, PNG, WebP (máx. 5MB)
                 </p>
               </div>
+
+              {/* Mobile Image 2 */}
+              <div className="grid gap-2">
+                <Label>📱 Imagem Celular 2 <span className="text-muted-foreground font-normal">(opcional — carrossel)</span></Label>
+                <p className="text-xs text-muted-foreground -mt-1">Se informada, alterna com a imagem celular 1 a cada 5 segundos</p>
+
+                {mobileImagePreview2 && (
+                  <div className="relative w-full h-32 rounded-lg overflow-hidden bg-muted">
+                    <img src={mobileImagePreview2} alt="Preview Celular 2" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={clearSelectedMobileFile2}
+                      className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  <label className="flex-1">
+                    <div className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
+                      <Upload className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">
+                        {selectedMobileFile2 ? selectedMobileFile2.name : "Escolher imagem celular 2"}
+                      </span>
+                    </div>
+                    <input type="file" accept="image/*" onChange={handleMobileFile2Select} className="hidden" />
+                  </label>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-px bg-border" />
+                  <span className="text-xs text-muted-foreground">ou cole uma URL</span>
+                  <div className="flex-1 h-px bg-border" />
+                </div>
+                <Input
+                  value={formData.mobileImageUrl2}
+                  onChange={(e) => {
+                    setFormData({ ...formData, mobileImageUrl2: e.target.value });
+                    if (e.target.value) {
+                      setSelectedMobileFile2(null);
+                      setMobileImagePreview2(e.target.value);
+                    } else {
+                      setMobileImagePreview2(null);
+                    }
+                  }}
+                  placeholder="https://exemplo.com/imagem-mobile2.jpg"
+                  disabled={!!selectedMobileFile2}
+                />
+                <p className="text-xs text-muted-foreground">Formatos aceitos: JPG, PNG, WebP (máx. 5MB)</p>
+              </div>
+
               <div className="grid gap-2">
                 <Label htmlFor="linkUrl">Link de Destino</Label>
                 <Input
@@ -607,6 +790,23 @@ const AdminBanners = () => {
                   }
                 />
               </div>
+
+              {formData.position === "promo" && (
+                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                  <div>
+                    <Label>Botão "Aproveitar agora"</Label>
+                    <p className="text-xs text-muted-foreground">
+                      {formData.showCtaButton ? "Botão visível no banner" : "Botão oculto"}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={formData.showCtaButton}
+                    onCheckedChange={(checked) =>
+                      setFormData({ ...formData, showCtaButton: checked })
+                    }
+                  />
+                </div>
+              )}
               <Button onClick={handleSave} className="mt-4" disabled={isSaving || isUploading}>
                 {(isSaving || isUploading) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 {isUploading ? "Enviando imagens..." : editingBanner ? "Salvar Alterações" : "Criar Banner"}
