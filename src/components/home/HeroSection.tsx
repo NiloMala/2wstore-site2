@@ -1,6 +1,8 @@
 import { useBanners } from "@/context/BannerContext";
 import { useEffect, useState } from "react";
 import heroBanner from "@/assets/hero-banner.jpg";
+import { useSwipe } from "@/hooks/use-swipe";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export const HeroSection = () => {
   const { getActiveBanner, loading } = useBanners();
@@ -21,6 +23,11 @@ export const HeroSection = () => {
 
   const hasCarousel = desktopImages.length > 1;
 
+  const swipe = useSwipe(
+    () => setSlide((s) => (s + 1) % desktopImages.length),
+    () => setSlide((s) => (s - 1 + desktopImages.length) % desktopImages.length)
+  );
+
   useEffect(() => {
     if (!hasCarousel) return;
     const id = setInterval(() => setSlide((s) => (s + 1) % desktopImages.length), 5000);
@@ -35,7 +42,10 @@ export const HeroSection = () => {
       {loading && !banner ? (
         <div className="w-full bg-muted animate-pulse" style={{ aspectRatio: "16/6" }} />
       ) : (
-        <div className="relative w-full overflow-hidden">
+        <div
+          className="relative w-full overflow-hidden cursor-grab active:cursor-grabbing select-none"
+          {...(hasCarousel ? swipe : {})}
+        >
           {/* Invisible height reference (first image defines container height) */}
           <picture className="invisible pointer-events-none select-none" aria-hidden="true">
             <source media="(max-width: 639px)" srcSet={mobileImages[0]} />
@@ -78,6 +88,26 @@ export const HeroSection = () => {
                 />
               ))}
             </div>
+          )}
+
+          {/* Prev / Next arrows — desktop only */}
+          {hasCarousel && (
+            <>
+              <button
+                onClick={() => setSlide((s) => (s - 1 + desktopImages.length) % desktopImages.length)}
+                className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-20 items-center justify-center w-10 h-10 rounded-full bg-black/40 hover:bg-black/60 text-white transition-colors"
+                aria-label="Banner anterior"
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </button>
+              <button
+                onClick={() => setSlide((s) => (s + 1) % desktopImages.length)}
+                className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-20 items-center justify-center w-10 h-10 rounded-full bg-black/40 hover:bg-black/60 text-white transition-colors"
+                aria-label="Próximo banner"
+              >
+                <ChevronRight className="h-6 w-6" />
+              </button>
+            </>
           )}
         </div>
       )}

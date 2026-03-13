@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useBanners } from "@/context/BannerContext";
 import { useEffect, useState } from "react";
 import { settingsService } from "@/services/settings.service";
+import { useSwipe } from "@/hooks/use-swipe";
 
 interface PromoDefaults {
   subtitle: string;
@@ -41,6 +42,11 @@ export const PromoSection = () => {
     : [banner?.mobile_image_url || desktopImages[0] || ""];
 
   const hasCarousel = desktopImages.length > 1;
+
+  const swipe = useSwipe(
+    () => setSlide((s) => (s + 1) % desktopImages.length),
+    () => setSlide((s) => (s - 1 + desktopImages.length) % desktopImages.length)
+  );
 
   useEffect(() => {
     if (!hasCarousel) return;
@@ -103,7 +109,10 @@ export const PromoSection = () => {
     <section className="relative w-full overflow-hidden">
       {/* Background carousel / static image */}
       {desktopImages.length > 0 ? (
-        <div className="relative w-full">
+        <div
+          className="relative w-full cursor-grab active:cursor-grabbing select-none"
+          {...(hasCarousel ? swipe : {})}
+        >
           {/* Invisible anchor for height */}
           <picture className="invisible pointer-events-none select-none" aria-hidden="true">
             <source media="(max-width: 639px)" srcSet={mobileImages[0] || undefined} />
@@ -139,6 +148,26 @@ export const PromoSection = () => {
                 />
               ))}
             </div>
+          )}
+
+          {/* Prev / Next arrows — desktop only */}
+          {hasCarousel && (
+            <>
+              <button
+                onClick={() => setSlide((s) => (s - 1 + desktopImages.length) % desktopImages.length)}
+                className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-20 items-center justify-center w-10 h-10 rounded-full bg-black/40 hover:bg-black/60 text-white transition-colors"
+                aria-label="Slide anterior"
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </button>
+              <button
+                onClick={() => setSlide((s) => (s + 1) % desktopImages.length)}
+                className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-20 items-center justify-center w-10 h-10 rounded-full bg-black/40 hover:bg-black/60 text-white transition-colors"
+                aria-label="Próximo slide"
+              >
+                <ChevronRight className="h-6 w-6" />
+              </button>
+            </>
           )}
         </div>
       ) : (
