@@ -84,6 +84,7 @@ function normalizeProduct(p: any) {
     categoryId: categoryId,
     sizes: p.sizes ?? p.available_sizes ?? [],
     colors: p.colors ?? p.available_colors ?? [],
+    variants: p.variants ?? null,
     isNew: Boolean(p.is_new ?? p.isNew),
     isBestSeller: Boolean(p.is_best_seller ?? p.isBestSeller),
     isOnSale: Boolean(p.is_on_sale ?? p.isOnSale),

@@ -68,6 +68,24 @@ const ProductDetail = () => {
     }
   };
 
+  // Reset size if it becomes unavailable when color changes
+  useEffect(() => {
+    if (!product || !selectedSize || !selectedColor) return;
+    const variants = (product as any).variants as { size: string; color: string; stock: number }[] | null;
+    if (!variants || variants.length === 0) return;
+    const combo = variants.find(v => v.size === selectedSize && v.color === selectedColor);
+    if (combo && combo.stock === 0) setSelectedSize("");
+  }, [selectedColor]);
+
+  // Reset color if it becomes unavailable when size changes
+  useEffect(() => {
+    if (!product || !selectedSize || !selectedColor) return;
+    const variants = (product as any).variants as { size: string; color: string; stock: number }[] | null;
+    if (!variants || variants.length === 0) return;
+    const combo = variants.find(v => v.size === selectedSize && v.color === selectedColor);
+    if (combo && combo.stock === 0) setSelectedColor("");
+  }, [selectedSize]);
+
   // Fetch product by ID
   useEffect(() => {
     let mounted = true;
@@ -278,19 +296,28 @@ const ProductDetail = () => {
                 </button>
               </div>
               <div className="flex flex-wrap gap-1.5 lg:gap-2">
-                {product.sizes.map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`min-w-[40px] h-9 lg:min-w-[48px] lg:h-12 px-2.5 lg:px-4 rounded-md lg:rounded-lg font-semibold transition-all text-xs lg:text-base ${
-                      selectedSize === size
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted hover:bg-muted/80"
-                    }`}
-                  >
-                    {size}
-                  </button>
-                ))}
+                {product.sizes.map((size) => {
+                  const variants = product.variants;
+                  const outOfStock = variants && variants.length > 0
+                    ? !variants.some(v => v.size === size && (selectedColor ? v.color === selectedColor : true) && v.stock > 0)
+                    : false;
+                  return (
+                    <button
+                      key={size}
+                      onClick={() => !outOfStock && setSelectedSize(size)}
+                      disabled={outOfStock}
+                      className={`min-w-[40px] h-9 lg:min-w-[48px] lg:h-12 px-2.5 lg:px-4 rounded-md lg:rounded-lg font-semibold transition-all text-xs lg:text-base relative ${
+                        outOfStock
+                          ? "bg-muted text-muted-foreground opacity-40 cursor-not-allowed line-through"
+                          : selectedSize === size
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted hover:bg-muted/80"
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -300,19 +327,28 @@ const ProductDetail = () => {
                 Cor: {selectedColor}
               </span>
               <div className="flex flex-wrap gap-1.5 lg:gap-2">
-                {product.colors.map((color) => (
-                  <button
-                    key={color}
-                    onClick={() => setSelectedColor(color)}
-                    className={`px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-md lg:rounded-lg font-medium transition-all text-xs lg:text-base ${
-                      selectedColor === color
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted hover:bg-muted/80"
-                    }`}
-                  >
-                    {color}
-                  </button>
-                ))}
+                {product.colors.map((color) => {
+                  const variants = product.variants;
+                  const outOfStock = variants && variants.length > 0
+                    ? !variants.some(v => v.color === color && (selectedSize ? v.size === selectedSize : true) && v.stock > 0)
+                    : false;
+                  return (
+                    <button
+                      key={color}
+                      onClick={() => !outOfStock && setSelectedColor(color)}
+                      disabled={outOfStock}
+                      className={`px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-md lg:rounded-lg font-medium transition-all text-xs lg:text-base ${
+                        outOfStock
+                          ? "bg-muted text-muted-foreground opacity-40 cursor-not-allowed line-through"
+                          : selectedColor === color
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted hover:bg-muted/80"
+                      }`}
+                    >
+                      {color}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

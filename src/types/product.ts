@@ -1,3 +1,9 @@
+export interface ProductVariant {
+  size: string;
+  color: string;
+  stock: number;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -11,6 +17,7 @@ export interface Product {
   category?: string;
   sizes?: string[];
   colors?: string[];
+  variants?: ProductVariant[];
   isNew?: boolean;
   isBestSeller?: boolean;
   isOnSale?: boolean;
