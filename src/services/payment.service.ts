@@ -19,6 +19,7 @@ export interface CreatePreferenceData {
     pending: string;
   };
   externalReference?: string;
+  payerEmail?: string;
 }
 
 export interface PreferenceResponse {
@@ -95,6 +96,7 @@ export const paymentService = {
         items: data.items,
         back_urls: data.backUrls,
         external_reference: data.externalReference || data.orderId,
+        payer_email: data.payerEmail,
       },
     });
 
