@@ -506,7 +506,6 @@ const Checkout = () => {
       const preference = await paymentService.createPreference({
         orderId: order.id,
         amount: adjustedTotal,
-        items: mpItems,
         externalReference: order.id,
         backUrls: {
           success: `${window.location.origin}/pagamento/sucesso?order_id=${order.id}`,
