@@ -507,11 +507,7 @@ const Checkout = () => {
         orderId: order.id,
         amount: adjustedTotal,
         externalReference: order.id,
-<<<<<<< HEAD
-        payerEmail: user?.email,
-=======
         payerEmail: user?.email || undefined,
->>>>>>> 8777703 (feat: imagem real do produto no carrinho e email do pagador no MP)
         backUrls: {
           success: `${window.location.origin}/pagamento/sucesso?order_id=${order.id}`,
           failure: `${window.location.origin}/pagamento/falha?order_id=${order.id}`,
