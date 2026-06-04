@@ -2,19 +2,6 @@ import { X, Plus, Minus, ShoppingBag } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import productTshirt from "@/assets/product-tshirt.jpg";
-import productHoodie from "@/assets/product-hoodie.jpg";
-
-const getProductImage = (category: string) => {
-  switch (category) {
-    case "camisetas":
-      return productTshirt;
-    case "moletons":
-      return productHoodie;
-    default:
-      return productTshirt;
-  }
-};
 
 export const CartSidebar = () => {
   const { items, isOpen, closeCart, removeItem, updateQuantity, totalPrice, totalItems } = useCart();
@@ -68,7 +55,7 @@ export const CartSidebar = () => {
                     className="flex gap-4 p-4 bg-muted rounded-lg"
                   >
                     <img
-                      src={getProductImage(item.category)}
+                      src={item.images?.[0] || item.image || ''}
                       alt={item.name}
                       className="w-20 h-20 object-cover rounded-lg"
                     />
