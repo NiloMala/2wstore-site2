@@ -384,17 +384,21 @@ const ProductDetail = () => {
                 size="lg"
                 className="flex-1 text-xs lg:text-base h-10 lg:h-14"
                 onClick={handleAddToCart}
-                disabled={!selectedSize || !selectedColor}
+                disabled={!selectedSize || !selectedColor || (product as any).stock === 0}
               >
                 <ShoppingBag className="h-4 w-4 lg:h-5 lg:w-5 mr-1.5 lg:mr-2" />
-                Adicionar ao carrinho
+                {(product as any).stock === 0 ? "Produto Esgotado" : "Adicionar ao carrinho"}
               </Button>
               <Button variant="outline" size="lg" className="h-10 lg:h-14 w-10 lg:w-14 p-0">
                 <Heart className="h-4 w-4 lg:h-5 lg:w-5" />
               </Button>
             </div>
 
-            {!selectedSize || !selectedColor ? (
+            {(product as any).stock === 0 ? (
+              <p className="text-xs lg:text-sm text-destructive font-medium">
+                Este produto está temporariamente esgotado.
+              </p>
+            ) : !selectedSize || !selectedColor ? (
               <p className="text-xs lg:text-sm text-muted-foreground">
                 Selecione tamanho e cor para continuar
               </p>

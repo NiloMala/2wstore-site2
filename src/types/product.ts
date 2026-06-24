@@ -15,6 +15,8 @@ export interface Product {
   image?: string;
   images?: string[];
   category?: string;
+  categoryId?: string;
+  stock?: number;
   sizes?: string[];
   colors?: string[];
   variants?: ProductVariant[];

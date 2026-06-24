@@ -53,6 +53,8 @@ export const ProductCard = memo(({ product }: ProductCardProps) => {
     }
   };
 
+  const outOfStock = product.stock === 0;
+
   return (
     <Link
       to={`/produto/${product.id}`}
@@ -65,8 +67,17 @@ export const ProductCard = memo(({ product }: ProductCardProps) => {
           alt={product.name}
           loading="lazy"
           decoding="async"
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${outOfStock ? "opacity-50 grayscale" : ""}`}
         />
+
+        {/* Overlay esgotado */}
+        {outOfStock && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="bg-black/70 text-white text-sm font-bold uppercase tracking-widest px-4 py-2 rounded-full">
+              Esgotado
+            </span>
+          </div>
+        )}
 
         {/* Favorite Button */}
         <button

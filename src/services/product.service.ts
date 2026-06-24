@@ -95,6 +95,7 @@ function normalizeProduct(p: any) {
     images: p.images ?? [],
     category: categoryName,
     categoryId: categoryId,
+    stock: typeof p.stock === 'number' ? p.stock : parseInt(p.stock) || 0,
     sizes: p.sizes ?? p.available_sizes ?? [],
     colors: p.colors ?? p.available_colors ?? [],
     variants: p.variants ?? null,
