@@ -32,7 +32,7 @@ export const authService = {
       .from('profiles')
       .select('*')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
     // Check if admin
     const { data: isAdmin } = await supabase.rpc('is_admin');

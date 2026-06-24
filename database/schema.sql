@@ -427,6 +427,11 @@ CREATE POLICY "Users can update own profile"
     TO authenticated
     USING (auth.uid() = id);
 
+CREATE POLICY "Users can insert own profile"
+    ON public.profiles FOR INSERT
+    TO authenticated
+    WITH CHECK (auth.uid() = id);
+
 CREATE POLICY "Admins can view all profiles"
     ON public.profiles FOR SELECT
     TO authenticated

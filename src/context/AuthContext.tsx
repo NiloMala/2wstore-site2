@@ -53,9 +53,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           .from('profiles')
           .select('*')
           .eq('id', userId)
-          .single();
+          .maybeSingle();
 
-        if (error || !profile) return null;
+        if (error) return null;
+
+        if (!profile) {
+          // Perfil ainda não existe (ex: usuário criado antes do trigger). Cria agora.
+          const authUser = sessionObj?.user;
+          const { data: createdProfile, error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              id: userId,
+              email: authUser?.email || '',
+              name: authUser?.user_metadata?.name || authUser?.email?.split('@')[0] || '',
+              phone: authUser?.user_metadata?.phone || authUser?.phone || null,
+            })
+            .select('*')
+            .single();
+
+          if (insertError || !createdProfile) {
+            console.error('fetchUserProfile: failed to create missing profile', insertError);
+            return null;
+          }
+
+          return {
+            id: createdProfile.id,
+            email: createdProfile.email,
+            name: createdProfile.name,
+            phone: createdProfile.phone || undefined,
+            avatarUrl: createdProfile.avatar_url || undefined,
+            createdAt: new Date(createdProfile.created_at),
+          };
+        }
 
         return {
           id: profile.id,
