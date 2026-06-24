@@ -36,6 +36,19 @@ export const productService = {
     return data || [];
   },
 
+  async getRelated(categoryId: string, excludeId: string, limit = 4) {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*, category:categories(id, name, slug)')
+      .eq('is_active', true)
+      .eq('category_id', categoryId)
+      .neq('id', excludeId)
+      .limit(limit);
+
+    if (error) throw error;
+    return (data || []).map(normalizeProduct);
+  },
+
   async getFeatured(filter: 'new' | 'bestseller' | 'sale', limit = 4) {
     let query = supabase
       .from('products')

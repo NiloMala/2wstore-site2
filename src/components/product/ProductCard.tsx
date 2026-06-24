@@ -1,3 +1,4 @@
+import { memo, useMemo } from "react";
 import { Link } from "react-router-dom";
 import type { Product } from "@/types/product";
 import { Button } from "@/components/ui/button";
@@ -29,13 +30,17 @@ interface ProductCardProps {
   product: Product;
 }
 
-export const ProductCard = ({ product }: ProductCardProps) => {
+export const ProductCard = memo(({ product }: ProductCardProps) => {
   const { toggleItem, isInWishlist } = useWishlist();
   const isFavorite = isInWishlist(product.id);
 
-  const discount = product.originalPrice
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-    : 0;
+  const discount = useMemo(
+    () =>
+      product.originalPrice
+        ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+        : 0,
+    [product.price, product.originalPrice]
+  );
 
   const handleToggleFavorite = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -58,6 +63,8 @@ export const ProductCard = ({ product }: ProductCardProps) => {
         <img
           src={product.image ?? (product.images && product.images[0]) ?? getProductImage(product.category)}
           alt={product.name}
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
 
@@ -65,8 +72,8 @@ export const ProductCard = ({ product }: ProductCardProps) => {
         <button
           onClick={handleToggleFavorite}
           className={`absolute top-3 right-3 p-2 rounded-full transition-all duration-200 ${
-            isFavorite 
-              ? "bg-destructive text-destructive-foreground" 
+            isFavorite
+              ? "bg-destructive text-destructive-foreground"
               : "bg-background/80 text-muted-foreground hover:bg-background hover:text-destructive"
           }`}
         >
@@ -124,4 +131,4 @@ export const ProductCard = ({ product }: ProductCardProps) => {
       </div>
     </Link>
   );
-};
+});

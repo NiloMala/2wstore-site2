@@ -18,4 +18,21 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules")) {
+            if (id.includes("recharts")) return "charts";
+            if (id.includes("@radix-ui")) return "radix";
+            if (id.includes("@supabase")) return "supabase";
+            if (id.includes("react-dom") || id.includes("react-router") || id.includes("react/")) return "react-vendor";
+            return "vendor";
+          }
+          if (id.includes("/pages/admin/")) return "admin";
+        },
+      },
+    },
+  },
 }));

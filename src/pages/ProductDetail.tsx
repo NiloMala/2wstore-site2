@@ -112,14 +112,11 @@ const ProductDetail = () => {
   useEffect(() => {
     let mounted = true;
     (async () => {
-      if (!product) return;
+      if (!product?.categoryId) return;
       try {
-        const all = await productService.getProducts();
+        const related = await productService.getRelated(product.categoryId, product.id);
         if (!mounted) return;
-        const related = (all as Product[])
-          .filter((p) => p.category === product.category && p.id !== product.id)
-          .slice(0, 4);
-        setRelatedProducts(related);
+        setRelatedProducts(related as Product[]);
       } catch (e) {
         console.error(e);
       }
@@ -127,7 +124,7 @@ const ProductDetail = () => {
     return () => {
       mounted = false;
     };
-  }, [product]);
+  }, [product?.categoryId, product?.id]);
 
   if (loading) {
     return (
@@ -195,6 +192,8 @@ const ProductDetail = () => {
                     <img
                       src={currentImage}
                       alt={product.name}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-contain select-none"
                       draggable={false}
                     />

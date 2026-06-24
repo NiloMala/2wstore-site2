@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,39 +13,55 @@ import { Footer } from "@/components/layout/Footer";
 import { CartSidebar } from "@/components/cart/CartSidebar";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
-import Index from "./pages/Index";
-import Catalog from "./pages/Catalog";
-import ProductDetail from "./pages/ProductDetail";
-import NotFound from "./pages/NotFound";
-import Login from "./pages/auth/Login";
-import Register from "./pages/auth/Register";
-import ForgotPassword from "./pages/auth/ForgotPassword";
-import ResetPassword from "./pages/auth/ResetPassword";
-import MyAccount from "./pages/customer/MyAccount";
-import MyOrders from "./pages/customer/MyOrders";
-import OrderDetail from "./pages/customer/OrderDetail";
-import MyAddresses from "./pages/customer/MyAddresses";
-import Wishlist from "./pages/customer/Wishlist";
-import Checkout from "./pages/Checkout";
-import PaymentSuccess from "./pages/PaymentSuccess";
-import PaymentFailure from "./pages/PaymentFailure";
-import PaymentPending from "./pages/PaymentPending";
-import Termos from "./pages/Termos";
-import Privacidade from "./pages/Privacidade";
-import Trocas from "./pages/Trocas";
 import ScrollToTop from "./components/ScrollToTop";
-import AdminLayout from "./pages/admin/AdminLayout";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminProducts from "./pages/admin/AdminProducts";
-import AdminOrders from "./pages/admin/AdminOrders";
-import AdminDelivery from "./pages/admin/AdminDelivery";
-import AdminShipping from "./pages/admin/AdminShipping";
-import AdminCoupons from "./pages/admin/AdminCoupons";
-import AdminBanners from "./pages/admin/AdminBanners";
-import AdminCategories from "./pages/admin/AdminCategories";
-import AdminSettings from "./pages/admin/AdminSettings";
 
-const queryClient = new QueryClient();
+// Lazy load de todas as páginas para reduzir o bundle inicial
+const Index = lazy(() => import("./pages/Index"));
+const Catalog = lazy(() => import("./pages/Catalog"));
+const ProductDetail = lazy(() => import("./pages/ProductDetail"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Login = lazy(() => import("./pages/auth/Login"));
+const Register = lazy(() => import("./pages/auth/Register"));
+const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
+const MyAccount = lazy(() => import("./pages/customer/MyAccount"));
+const MyOrders = lazy(() => import("./pages/customer/MyOrders"));
+const OrderDetail = lazy(() => import("./pages/customer/OrderDetail"));
+const MyAddresses = lazy(() => import("./pages/customer/MyAddresses"));
+const Wishlist = lazy(() => import("./pages/customer/Wishlist"));
+const Checkout = lazy(() => import("./pages/Checkout"));
+const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
+const PaymentFailure = lazy(() => import("./pages/PaymentFailure"));
+const PaymentPending = lazy(() => import("./pages/PaymentPending"));
+const Termos = lazy(() => import("./pages/Termos"));
+const Privacidade = lazy(() => import("./pages/Privacidade"));
+const Trocas = lazy(() => import("./pages/Trocas"));
+const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminProducts = lazy(() => import("./pages/admin/AdminProducts"));
+const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"));
+const AdminDelivery = lazy(() => import("./pages/admin/AdminDelivery"));
+const AdminShipping = lazy(() => import("./pages/admin/AdminShipping"));
+const AdminCoupons = lazy(() => import("./pages/admin/AdminCoupons"));
+const AdminBanners = lazy(() => import("./pages/admin/AdminBanners"));
+const AdminCategories = lazy(() => import("./pages/admin/AdminCategories"));
+const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
+      retry: 1,
+    },
+  },
+});
+
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+  </div>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -57,6 +74,7 @@ const App = () => (
             <Sonner />
           <BrowserRouter>
             <ScrollToTop />
+            <Suspense fallback={<PageLoader />}>
             <Routes>
               {/* Admin Routes - No Header/Footer */}
               <Route path="/admin" element={<AdminLayout />}>
@@ -108,6 +126,7 @@ const App = () => (
                 }
               />
             </Routes>
+            </Suspense>
           </BrowserRouter>
             </BannerProvider>
           </WishlistProvider>
