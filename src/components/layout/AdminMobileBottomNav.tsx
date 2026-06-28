@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Package, ShoppingCart, Bike, Ticket, Image } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Bike, Ticket, Image, Tag } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -14,6 +14,7 @@ export const AdminMobileBottomNav = () => {
   const navItems: NavItem[] = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/admin" },
     { icon: Package, label: "Produtos", href: "/admin/produtos" },
+    { icon: Tag, label: "Categorias", href: "/admin/categorias" },
     { icon: ShoppingCart, label: "Pedidos", href: "/admin/pedidos" },
     { icon: Bike, label: "Entregas", href: "/admin/entregas" },
     { icon: Ticket, label: "Cupons", href: "/admin/cupons" },
