@@ -181,7 +181,6 @@ export const ordersService = {
    * Delete order and its items (admin)
    */
   async delete(id: string) {
-    // Remove order items first to be safe
     const { error: itemsError } = await supabase
       .from('order_items')
       .delete()
@@ -189,12 +188,16 @@ export const ordersService = {
 
     if (itemsError) throw itemsError;
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('orders')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .select();
 
     if (error) throw error;
+    if (!data || data.length === 0) {
+      throw new Error('Não foi possível excluir o pedido. Verifique as permissões no banco de dados.');
+    }
     return true;
   },
 
