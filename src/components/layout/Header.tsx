@@ -83,7 +83,7 @@ export const Header = () => {
           <div className="flex items-center gap-2 lg:gap-4">
             <Popover open={searchOpen} onOpenChange={setSearchOpen}>
               <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon" className="hidden lg:flex">
+                <Button variant="ghost" size="icon">
                   <Search className="h-5 w-5" />
                 </Button>
               </PopoverTrigger>
